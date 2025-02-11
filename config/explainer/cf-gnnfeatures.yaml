@@ -1,0 +1,2 @@
+name: cf-gnnfeatures
+clip_grad_norm: 2.0

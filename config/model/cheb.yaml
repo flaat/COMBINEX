@@ -1,0 +1,4 @@
+hidden_layers: [64, 64, 64]
+dropout: 0.5
+K: 1
+name: CHEB

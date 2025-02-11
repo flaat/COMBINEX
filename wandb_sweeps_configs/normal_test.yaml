@@ -1,0 +1,10 @@
+program: main.py
+method: grid
+name: None
+metric:
+  goal: maximize
+  name: fidelity
+parameters:
+  seed:
+    min: 0
+    max: 3

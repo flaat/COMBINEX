@@ -1,0 +1,4 @@
+lr: 0.001
+clip: 2
+epochs: 500
+batch_size: 256

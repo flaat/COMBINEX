@@ -1,0 +1,6 @@
+name: cff
+epochs: 500
+alpha: 0.5
+lam: 0.5
+gamma: 0.5
+lr: 0.05

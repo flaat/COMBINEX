@@ -1,0 +1,6 @@
+lr: 0.1
+n_momentum: 0.0
+beta: 0.5
+gamma: 1
+num_epochs: 2000
+name: sgd

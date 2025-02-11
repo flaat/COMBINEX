@@ -1,0 +1,9 @@
+name: train_classifier
+dataset: "cora"
+epochs: 200
+lr: 0.001
+dropout: 0.0
+weight_decay: 0.001
+device: "cuda"
+clip: 2.0
+hidden: 500

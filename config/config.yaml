@@ -1,0 +1,30 @@
+defaults:
+  - _self_
+  - dataset: proteins_g  # Can be: aids actor planetoid karate attributed webkb enzymes protein 
+  - model: cheb # Can be: gcn gat cheb
+  - optimizer: adam
+  - general: general_default
+  - task:  graph # Can be: node or graph
+  - explainer: combined # Can be: cf-gnnfeatures cf-gnn random-feat random cff unr combined
+  - trainer: naive_trainer
+  - logger: wandb
+  - scheduler: scheduler
+verbose: False
+random_num_epochs: 500
+device: cuda
+workers: 1
+path: ""
+seed: 1
+run_mode: run
+figure: False
+# Project name on wandb
+project: COMBINEX
+name: test
+
+# Eventual timeout in seconds to kill the process
+timeout: 500
+
+# Number of agents to carry out the simulation
+num_agents: 4
+test_size: 0.2
+max_samples: 150

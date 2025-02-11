@@ -1,0 +1,4 @@
+policy: linear
+initial_alpha: 1.0
+step_size: 0.05
+decay_rate: 0.1

@@ -1,0 +1,5 @@
+name: experiments
+kfold: 5
+test_size: 0.2
+multiprocessing: True
+algorithms: ["cf-gnn", "random-feat", "cf-gnn", "cf-gnnfeatures"]

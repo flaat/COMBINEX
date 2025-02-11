@@ -1,0 +1,14 @@
+program: main.py
+method: grid
+name: None
+metric:
+  goal: maximize
+  name: fidelity
+parameters:
+  seed:
+    min: 0
+    max: 4
+  technique_name:
+    values: ["cf-gnn", "random-feat", "cf-gnnfeatures", "random", "ego", "cff"]
+  epochs:
+    values: [5, 10, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
