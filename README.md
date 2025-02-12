@@ -1,70 +1,100 @@
-# COMBINEX: A Unified Counterfactual Explainer for Graph Neural Networks via Node Feature and Structural Perturbations
+# COMBINEX: A Unified Counterfactual Explainer for Graph Neural Networks
+
+This repository provides a modular and configurable framework for generating counterfactual explanations in Graph Neural Networks (GNNs) using node feature and structural perturbations.
+
+## Table of Contents
+- [Overview](#overview)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configurations](#configurations)
+    - [Dataset Options](#dataset-options)
+    - [Logger Settings](#logger-settings)
+    - [Model Architectures and Techniques](#model-architectures-and-techniques)
+- [Examples](#examples)
+- [Known Issues](#known-issues)
+
+## Overview
+
+COMBINEX offers a flexible setup where all configurable options are defined within YAML files in the `config` folder. This design allows users to tailor every aspect of the software—ranging from datasets, logging, and model configurations to counterfactual explanation strategies.
+
 ![Python Version](https://img.shields.io/badge/python-3.11.9-brightgreen)
 ![PyTorch Version](https://img.shields.io/badge/pytorch-2.3.0-brightgreen)
 ![PyTorch Geometric Version](https://img.shields.io/badge/torch_geometric-2.5.3-brightgreen)
 ![Hydra](https://img.shields.io/badge/hydracore-1.3.2-brightgreen)
-![PyTorch Geometric Version](https://img.shields.io/badge/wandb-0.17.1-brightgreen)
+![WandB](https://img.shields.io/badge/wandb-0.17.1-brightgreen)
 
-This repository is the official implementation of the paper:
-### COMBINEX: A Unified Counterfactual Explainer for Graph Neural Networks via Node Feature and Structural Perturbations
+## Installation
 
-## Requirements
-
-To install requirements:
+To install the required dependencies, run:
 
 ```setup
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
-## How to start the code
+Ensure you have Python 3.11.9 or later and the correct versions of PyTorch, PyTorch Geometric, and Hydra installed.
 
-You can start the the code just typing 
+## Usage
+
+To start the software with the default Hydra configuration, simply run:
 
 ```start
 python main.py
 ```
 
-In this way you are going to start the software with the default hydra configuration.
+If you wish to override default options, read on for configuration details.
 
-If you want to change options in the default configuration continue to read
+## Configurations
 
-## Conifgurations
-There are many ways to configure the software, you can chose among: dataset, logger, technique, run_mode
+COMBINEX is built around a flexible configuration system managed by Hydra. All configurations are located in the `config` folder, enabling you to customize the following:
 
-### Dataset
-You can chose among one of these dataset classes, namely:
-* **planetoid**: cora, citeseer, pubmed
-* **attributed**: Facebook BlogCatalog, Wiki
-* **webkb**: Cornell, Wisconsin, Texas
-* **karate**
-* **actor**
+### Dataset Options
 
-for example if you need to use the dataset cora you can use the following commands:
+You can choose between different dataset classes:
+
+- **planetoid**: Supports datasets such as Cora, Citeseer, Pubmed.
+- **attributed**: Includes datasets like Facebook BlogCatalog and Wiki.
+- **webkb**: Options include Cornell, Wisconsin, Texas.
+- **karate**
+- **actor**
+
+For example, to use the Cora dataset:
+
 ```dataset
 ... dataset=planetoid dataset.name=cora
 ```
 
-### Logger
-You can chose among different mode for the logger
-* **mode**: online, offline
-* **conifg**: $your_config_name
+### Logger Settings
 
-### Technique
+Define logger behavior by selecting modes:
 
-### Run Mode
+- **mode**: Choose between `online` or `offline`.
+- **config**: Set your custom logging configuration via the specified configuration files.
 
-## How to run the code, an example
+### Model Architectures and Techniques
 
-In order to run the code you can 
+Switch between various GNN models and counterfactual explanation strategies. Detailed model parameters and techniques are available in:
 
-```start
-python main.py run_mode=run logger.mode=online  
+- [config/model](config/model)
+- [config/explainer](config/explainer)
+
+## Examples
+
+To launch the software with a specific dataset, logger mode, and run mode, use the following command:
+
+```bash
+python main.py dataset=planetoid dataset.name=cora logger.mode=online run_mode=run
 ```
 
+This command will load the Cora dataset, set the logger to online mode, and run the software.
+
 ## Known Issues
-With wandb>0.17.5 there are issues with multiple agents
+
+- For versions of WandB greater than 0.17.5, there may be problems with multiple agents leading to errors like:
 
 ```
 wandb.sdk.lib.service_connection.WandbServiceNotOwnedError: Cannot tear down service started by different process
 wandb: ERROR 
 ```
+
+Happy experimenting with COMBINEX!
+
