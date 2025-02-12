@@ -72,3 +72,4 @@ tzdata==2024.2
 urllib3==2.2.3
 wandb==0.17.5
 yarl==1.15.2
+gensim==4.3.3
