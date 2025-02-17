@@ -17,14 +17,19 @@ This repository provides a modular and configurable framework for generating cou
 
 COMBINEX offers a flexible setup where all configurable options are defined within YAML files in the `config` folder. This design allows users to tailor every aspect of the software—ranging from datasets, logging, and model configurations to counterfactual explanation strategies.
 
-![Python Version](https://img.shields.io/badge/python-3.11.9-brightgreen)
-![PyTorch Version](https://img.shields.io/badge/pytorch-2.3.0-brightgreen)
-![PyTorch Geometric Version](https://img.shields.io/badge/torch_geometric-2.5.3-brightgreen)
+![Python Version](https://img.shields.io/badge/python-3.11.10-brightgreen)
+![PyTorch Version](https://img.shields.io/badge/pytorch-2.5.0-brightgreen)
+![PyTorch Geometric Version](https://img.shields.io/badge/torch_geometric-2.6.1-brightgreen)
 ![Hydra](https://img.shields.io/badge/hydracore-1.3.2-brightgreen)
-![WandB](https://img.shields.io/badge/wandb-0.17.1-brightgreen)
+![WandB](https://img.shields.io/badge/wandb-0.17.5-brightgreen)
 
 ## Installation
-
+Create a Conda env and install **Python 3.11.10**
+```setup
+conda create --name combinex
+conda activate combinex
+conda install python=3.11.10
+```
 To install the required dependencies, run:
 
 ```setup
