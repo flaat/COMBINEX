@@ -36,7 +36,7 @@ To install the required dependencies, run:
 pip install -r requirements.txt
 ```
 
-Ensure you have Python 3.11.9 or later and the correct versions of PyTorch, PyTorch Geometric, and Hydra installed.
+Ensure you have Python 3.11.10 or later and the correct versions of PyTorch, PyTorch Geometric, and Hydra installed.
 
 ## Usage
 
