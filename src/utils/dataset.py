@@ -338,7 +338,7 @@ def get_dataset(dataset_name: str = None, test_size: float = 0.2)->Data:
         from torch_geometric.datasets import TUDataset
         
         discrete_mask = torch.Tensor([1, 1, 1, 0, 1, 0, 0, 0, 0] + [1] * 12 + [0] * 8 + [1, 1, 1])
-        dataset = TUDataset(root="data", name="PROTEINS_full", use_node_attr=True, force_reload=True)
+        dataset = TUDataset(root="data/proteins_g", name="PROTEINS_full", use_node_attr=True, force_reload=True)
         min_range = torch.min(dataset.data.x, dim=0)[0]
         max_range = torch.max(dataset.data.x, dim=0)[0]  
         

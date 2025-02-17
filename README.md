@@ -70,7 +70,7 @@ For example, to use the Cora dataset:
 
 ### Logger Settings
 
-Define logger behavior by selecting modes:
+Define logger (WANDB) behavior by selecting modes:
 
 - **mode**: Choose between `online` or `offline`.
 - **config**: Set your custom logging configuration via the specified configuration files.
@@ -92,6 +92,21 @@ python main.py dataset=planetoid dataset.name=cora logger.mode=online run_mode=r
 
 This command will load the Cora dataset, set the logger to online mode, and run the software.
 
+## Run the experiments
+To run the experiments you can run the .sh files contained in the folder, namely :
+- run_graph_experiments.sh
+- run_graph_time_experiments.sh
+- run_node_experiments.sh
+- run_node_time_experiments.sh
+
+The first two run the experiments on graphs classification, the other two on node classification.
+
+The "time" experiments are run sequentially, avoiding multiprocessing to get the real explainer time.
+
+***This framework makes extensive use of multiprocessing! Check the configuration to select how many agents and workers you can have*** 
+
+***IMPORTANT: To get the results for different models you MUST change the variale model within the scripts with "gcn" "cheb" "graph"***
+
 ## Known Issues
 
 - For versions of WandB greater than 0.17.5, there may be problems with multiple agents leading to errors like:
@@ -102,4 +117,5 @@ wandb: ERROR
 ```
 
 Happy experimenting with COMBINEX!
+- Sometimes AIDS and ENZYMES datasets for node classification have problems. To solve that we advice to remove the processed dataset from the processed folder. We will solve the issue asap.
 
