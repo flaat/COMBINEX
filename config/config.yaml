@@ -1,7 +1,7 @@
 defaults:
   - _self_
-  - dataset: proteins_g  # Can be: aids actor planetoid karate attributed webkb enzymes protein 
-  - model: cheb # Can be: gcn gat cheb
+  - dataset: hiv  # Can be: aids actor planetoid karate attributed webkb enzymes protein 
+  - model: gcn # Can be: gcn gat cheb
   - optimizer: adam
   - general: general_default
   - task:  graph # Can be: node or graph

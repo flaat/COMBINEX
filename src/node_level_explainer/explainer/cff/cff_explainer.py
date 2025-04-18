@@ -4,12 +4,12 @@ import torch
 import math
 from torch_geometric.data import Data
 import time
-from src.abstract.explainer import Explainer
+from src.abstract.explainer import ExplainerABC
 from src.datasets.dataset import DataInfo
 from ...utils.utils import build_counterfactual_graph
 
 
-class CFFExplainer(Explainer):
+class CFFExplainer(ExplainerABC):
     
     def __init__(self, cfg: DictConfig, datainfo: DataInfo) -> None:
         super().__init__(cfg, datainfo)

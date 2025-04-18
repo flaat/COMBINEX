@@ -5,11 +5,11 @@ from tqdm import tqdm
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ....abstract.explainer import Explainer
+from ....abstract.explainer import ExplainerABC
 from ...utils.utils import build_counterfactual_graph
 from torch import nn
 
-class RandomFeaturesExplainer(Explainer):
+class RandomFeaturesExplainer(ExplainerABC):
     
     def __init__(self, cfg:DictConfig, datainfo) -> None:
         super().__init__(cfg=cfg, datainfo=datainfo)

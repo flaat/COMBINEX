@@ -6,3 +6,4 @@ from .explainer import RandomFeaturesExplainer
 from .explainer import CFFExplainer
 from .explainer import UNRExplainer
 from .explainer import CombinedExplainer
+from .explainer import GNNExplainerWrap

@@ -2,7 +2,7 @@
 import torch
 import numpy as np
 from torch.nn.utils import clip_grad_norm_
-from src.abstract.explainer import Explainer
+from src.abstract.explainer import ExplainerABC
 from ...utils.utils import build_counterfactual_graph, get_optimizer
 from omegaconf import DictConfig
 from torch_geometric.data import Data
@@ -13,7 +13,7 @@ from torch import nn
 
 
 
-class CFExplainer(Explainer):
+class CFExplainer(ExplainerABC):
 
     def __init__(self, cfg: DictConfig, datainfo):
         super().__init__(cfg=cfg, datainfo=datainfo)   

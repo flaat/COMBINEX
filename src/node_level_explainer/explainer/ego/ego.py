@@ -5,12 +5,12 @@ import numpy as np
 from omegaconf import DictConfig
 import torch
 import torch.nn.functional as F
-from ....abstract.explainer import Explainer
+from ....abstract.explainer import ExplainerABC
 from ...utils.utils import build_counterfactual_graph, get_neighbourhood, normalize_adj
 from torch_geometric.utils import dense_to_sparse, k_hop_subgraph, to_dense_adj
 from torch_geometric.data import Data
 
-class EgoExplainer(Explainer):
+class EgoExplainer(ExplainerABC):
 	
     def __init__(self, cfg:DictConfig, datainfo) -> None:
         super().__init__(cfg=cfg, datainfo=datainfo)	

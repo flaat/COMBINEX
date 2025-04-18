@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 from torch_geometric.data import Data, Dataset
 from tqdm import tqdm
 import numpy as np
-from src.abstract.explainer import Explainer
+from src.abstract.explainer import ExplainerABC
 from src.utils.explainer import get_graph_explainer, get_node_explainer
 from ....abstract.wrapper import Wrapper
 from ...utils.utils import check_graphs, plot_factual_and_counterfactual_graphs
@@ -46,7 +46,7 @@ class GraphExplainerWrapper(Wrapper):
         Parameters:
         - data (Dataset): The graph dataset containing features, edges, and test masks.
         - datainfo (DataInfo): Object containing dataset metadata and other relevant information.
-        - explainer (Explainer): The explainer algorithm to generate explanations.
+        - explainer (ExplainerABC): The explainer algorithm to generate explanations.
 
         Returns:
         - dict: A dictionary containing the results of the explanation process and metrics.
@@ -167,7 +167,7 @@ def process(oracle, factual_graph, explainer_name: str, datainfo: DataInfo, cfg,
     try:
         
         model = copy.deepcopy(oracle).to(device)
-        explainer: Explainer = get_node_explainer(explainer_name) if cfg.task.name == "Node" else get_graph_explainer(explainer_name)
+        explainer: ExplainerABC = get_node_explainer(explainer_name) if cfg.task.name == "Node" else get_graph_explainer(explainer_name)
         explainer = explainer(cfg, datainfo)
         
         start_time = time.time()

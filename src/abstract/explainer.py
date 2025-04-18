@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from src.datasets.dataset import DataInfo
 
-class Explainer(ABC):
+class ExplainerABC(ABC):
 
     def __init__(self, cfg: DictConfig, datainfo: DataInfo) -> None:
         

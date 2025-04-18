@@ -5,3 +5,4 @@ from .ego.ego import EgoExplainer
 from .random.random_perturb_features import RandomFeaturesExplainer
 from .combined.combined_explainer import CombinedExplainer
 from .cff.cff_explainer import CFFExplainer
+from .gnnexplainer.gnnexplainer_graph import GNNExplainerWrap

@@ -48,7 +48,7 @@ class GraphConvolutionPerturb(nn.Module):
 
 class GCNSyntheticPerturb(nn.Module):
 	"""
-	3-layer GCN used in GNN Explainer synthetic tasks
+	3-layer GCN used in GNN ExplainerABC synthetic tasks
 	"""
 	def __init__(self, cfg, nfeat: int, nhid: int, nout: int, nclass: int, adj, dropout, beta, edge_additions=False):
 		super(GCNSyntheticPerturb, self).__init__()

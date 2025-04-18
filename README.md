@@ -1,4 +1,4 @@
-# COMBINEX: A Unified Counterfactual Explainer for Graph Neural Networks
+# COMBINEX: A Unified Counterfactual ExplainerABC for Graph Neural Networks
 
 This repository provides a modular and configurable framework for generating counterfactual explanations in Graph Neural Networks (GNNs) using node feature and structural perturbations.
 

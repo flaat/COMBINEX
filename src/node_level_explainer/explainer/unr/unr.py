@@ -6,7 +6,7 @@ import math
 import networkx as nx
 from omegaconf import DictConfig
 import torch
-from src.abstract.explainer import Explainer
+from src.abstract.explainer import ExplainerABC
 from torch_geometric.data import Data
 from torch_geometric.utils import to_networkx
 
@@ -17,7 +17,7 @@ from ...utils.utils import normalize_adj, get_optimizer
 import time
 
 
-class UNRExplainer(Explainer):
+class UNRExplainer(ExplainerABC):
     
     
     def __init__(self, cfg: DictConfig, datainfo) -> None:

@@ -1,7 +1,7 @@
-from src.abstract.explainer import Explainer
+from src.abstract.explainer import ExplainerABC
 
 
-def get_node_explainer(name: str)->Explainer:
+def get_node_explainer(name: str)->ExplainerABC:
     """
     Returns the appropriate node explainer class based on the provided name.
     Parameters:
@@ -15,7 +15,7 @@ def get_node_explainer(name: str)->Explainer:
         - "unr": Returns UNRExplainer
         - "gnn-explainer": Raises NotImplemented error
     Returns:
-    Explainer: The corresponding explainer class for the given name.
+    ExplainerABC: The corresponding explainer class for the given name.
     Raises:
     ValueError: If the provided name does not match any of the valid options.
     NotImplemented: If the provided name is "gnn-explainer".
@@ -53,15 +53,16 @@ def get_node_explainer(name: str)->Explainer:
         from src.node_level_explainer import CombinedExplainer
         return CombinedExplainer
     
-    elif name == "gnn-explainer":
-        raise NotImplemented("Not implemented yet!")
+    elif name == "gnnexplainer":
+        from src.node_level_explainer import GNNExplainerWrap
+        return GNNExplainerWrap
     
     else:
         raise ValueError(f"Technique not implemented {name}")
     
     
     
-def get_graph_explainer(name: str)->Explainer:
+def get_graph_explainer(name: str)->ExplainerABC:
 
     if name == "cf-gnnfeatures":
         from src.graph_level_explainer import CFExplainerFeatures
@@ -91,8 +92,9 @@ def get_graph_explainer(name: str)->Explainer:
         from src.graph_level_explainer import CFFExplainer
         return CFFExplainer
     
-    elif name == "gnn-explainer":
-        raise NotImplemented("Not implemented yet!")
+    elif name == "gnnexplainer":
+        from src.graph_level_explainer import GNNExplainerWrap
+        return GNNExplainerWrap
     
     else:
         raise ValueError(f"Technique not implemented {name}")

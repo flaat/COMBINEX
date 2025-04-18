@@ -41,7 +41,7 @@ class GraphPerturber(Perturber):
         self.min_range = datainfo.min_range.to(device)
         self.max_range = datainfo.max_range.to(device)
         
-        # Explainer characteristics
+        # ExplainerABC characteristics
         self.discrete_features_addition: bool = True
         self.discrete_features_mask: Tensor = datainfo.discrete_mask.to(device)
         self.continous_features_mask: Tensor = 1 - datainfo.discrete_mask.to(device)

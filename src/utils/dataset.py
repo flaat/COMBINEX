@@ -372,6 +372,27 @@ def get_dataset(dataset_name: str = None, test_size: float = 0.2)->Data:
         test_mask[test_index] = True
               
         return Data(dataset=dataset, train_mask=train_mask, test_mask=test_mask, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)                
+    
+    elif dataset_name == "HIV":
+        from torch_geometric.datasets import MoleculeNet
+
+        dataset = MoleculeNet(root="data", name="HIV")
+        min_range = torch.min(dataset.data.x, dim=0)[0]
+        max_range = torch.max(dataset.data.x, dim=0)[0]  
+                
+        # All features are discrete for HIV dataset
+        discrete_mask = torch.ones(dataset.data.x.shape[1])
+                
+        ids = torch.arange(start=0, end=len(dataset), step=1).tolist()
+        train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
+                
+        train_mask = torch.zeros(len(dataset), dtype=torch.bool)
+        test_mask = torch.zeros(len(dataset), dtype=torch.bool)
+                
+        train_mask[train_index] = True
+        test_mask[test_index] = True
+                    
+        return Data(dataset=dataset, train_mask=train_mask, test_mask=test_mask, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
         
     else:
         raise Exception("Choose a valid dataset!")

@@ -5,3 +5,4 @@ from .explainer import EgoExplainer
 from .explainer import RandomFeaturesExplainer
 from .explainer import CombinedExplainer
 from .explainer import CFFExplainer
+from .explainer import GNNExplainerWrap

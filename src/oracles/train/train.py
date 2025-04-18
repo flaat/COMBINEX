@@ -42,13 +42,13 @@ class GraphTrainer:
 			data = data.to(self.device)
 			self.optimizer.zero_grad()
 			output = self.model(data.x, data.edge_index, data.batch)
-			loss_train = self.loss(output, data.y)
+			loss_train = self.loss(output, data.y.squeeze().long())
 			loss_train.backward()
 			clip_grad_norm_(self.model.parameters(), self.cfg.trainer.clip)
 			self.optimizer.step()
 			total_loss += loss_train.item()
 			y_pred = torch.argmax(output, dim=1)
-			self.metric.update(y_pred, data.y)
+			self.metric.update(y_pred, data.y.squeeze().long())
 		return total_loss / len(self.train_loader), self.metric.compute()
 
 	def _test(self):
@@ -59,10 +59,10 @@ class GraphTrainer:
 			for data in self.test_loader:
 				data = data.to(self.device)
 				output = self.model(data.x, data.edge_index, data.batch)
-				loss_test = self.loss(output, data.y)
+				loss_test = self.loss(output, data.y.squeeze().long())
 				total_loss += loss_test.item()
 				y_pred = torch.argmax(output, dim=1)
-				self.metric.update(y_pred, data.y)
+				self.metric.update(y_pred, data.y.squeeze().long())
 		return total_loss / len(self.test_loader), self.metric.compute()
 
 	def start_training(self):

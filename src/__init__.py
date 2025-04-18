@@ -1,1 +1,1 @@
-from .abstract.explainer import Explainer
+from .abstract.explainer import ExplainerABC

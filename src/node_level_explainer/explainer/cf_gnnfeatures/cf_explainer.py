@@ -6,14 +6,14 @@ from torch.nn.utils import clip_grad_norm_
 from .node_perturber import NodePerturber
 from omegaconf import DictConfig
 from ...utils.utils import build_counterfactual_graph, get_optimizer
-from ....abstract.explainer import Explainer  
+from ....abstract.explainer import ExplainerABC  
 from tqdm import tqdm 
 from src.datasets.dataset import DataInfo
 
 
-class CFExplainerFeatures(Explainer):
+class CFExplainerFeatures(ExplainerABC):
     """
-    CF Explainer class, returns counterfactual subgraph
+    CF ExplainerABC class, returns counterfactual subgraph
     """
     def __init__(self, cfg: DictConfig, datainfo: DataInfo):
         super().__init__(cfg=cfg, datainfo=datainfo)

@@ -216,12 +216,12 @@ class GCN_G(nn.Module):
         # Output layer
         self.output_layer = nn.Linear(cfg.model.hidden_layers[-1], num_classes)
 
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, batch: torch.Tensor, edge_weights: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, batch: torch.Tensor = None, edge_weights: torch.Tensor = None) -> torch.Tensor:
         for layer in self.layers:
             if edge_weights is not None:
                 x = F.relu(layer(x, edge_index, edge_weight=edge_weights))
             else:
-                x = F.relu(layer(x, edge_index))
+                x = F.relu(layer(x.float(), edge_index))
             x = F.dropout(x, self.dropout, training=self.training)
         
         # Global pooling
@@ -242,7 +242,7 @@ class GCN_G(nn.Module):
             torch.Tensor: Graph-level embedding representation.
         """
         for layer in self.layers:
-            x = F.relu(layer(x, edge_index))
+            x = F.relu(layer(x.float(), edge_index))
             x = F.dropout(x, self.dropout, training=self.training)
         
         # Global pooling for graph-level representation

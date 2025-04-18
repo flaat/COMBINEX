@@ -7,3 +7,4 @@ from .random.random_perturb_features import RandomFeaturesExplainer
 from .cff.cff_explainer import CFFExplainer
 from .unr.unr import UNRExplainer
 from .combined.combined_explainer import CombinedExplainer
+from .gnnexplainer.gnnexplainer import GNNExplainerWrap
