@@ -98,6 +98,10 @@ def main(cfg: DictConfig):
         
         train(cfg)
         
+    elif cfg.run_mode == "evaluate":
+        
+        pass
+        
     else:
         
         raise ValueError(f"Values for run_mode can be sweep or run, you insert {cfg.run_mode}")

@@ -1,5 +1,5 @@
 from torch import nn
-from src.oracles.models.models import GCN, ChebNet, GCN_G, ChebNet_G, GraphConvNet, GraphConvNet_G
+from src.oracles.models.models import GCN, ChebNet, GCN_G, ChebNet_G, GraphConvNet, GraphConvNet_G, GINENet_G, GAT_G
 from typing import Union
 
 
@@ -23,6 +23,12 @@ def get_model(name: str, task: str) -> Union[GCN, ChebNet]:
       
     elif name == "GraphConv" and task == "Graph":
         return GraphConvNet_G
+    
+    elif name == "GINE" and task == "Graph":
+        return GINENet_G    
+    
+    elif name == "GAT" and task == "Graph":
+        return GAT_G  
     
     else:
         raise ValueError(f"Model not implemented {name}")

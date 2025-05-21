@@ -99,14 +99,19 @@ class GraphExplainerWrapper(Wrapper):
                     pid += 1
                     print(f"{pid}/{len(self.train_loader)}")
                     # Build the factual graph for the current mask index
-                    factual = Data(
-                        x=graph.x.cpu(),
-                        edge_index=graph.edge_index.cpu(),
-                        y=predicted_labels[pid].cpu(),
-                        y_ground=graph.y.cpu(),
-                        targets=target_labels[pid].cpu().long(),
-                        x_projection=embedding_repr.cpu(),
-                        batch=graph.batch.cpu())
+                    
+                    arguments = {"x": graph.x.cpu(), 
+                                 "edge_index": graph.edge_index.cpu(), 
+                                 "batch": graph.batch.cpu(), 
+                                 "y": graph.y.cpu(), 
+                                 "targets": target_labels[pid].cpu().long(), 
+                                 "x_projection": embedding_repr.cpu(), 
+                                 "y_ground": predicted_labels[pid].cpu()}
+                    
+                    if hasattr(graph, "edge_attr"):
+                        arguments["edge_attr"] = graph.edge_attr.cpu()
+                    
+                    factual = Data(**arguments)
 
                     # Skip if the graph is invalid
                     if check_graphs(factual.edge_index):

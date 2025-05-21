@@ -293,7 +293,7 @@ def build_counterfactual_graph(x: Tensor, edge_index: Tensor, graph: Data, oracl
     return counterfactual
 
 
-def build_counterfactual_graph_gc(x: Tensor, edge_index: Tensor, graph: Data, oracle: nn.Module, output_actual: Tensor, device: str = "cuda") -> Data:
+def build_counterfactual_graph_gc(x: Tensor, edge_index: Tensor, graph: Data, oracle: nn.Module, output_actual: Tensor, edge_attr = None,  device: str = "cuda") -> Data:
     """
     Constructs a counterfactual graph based on the provided edge index, original graph, and results from an oracle model.
     Args:
@@ -310,6 +310,7 @@ def build_counterfactual_graph_gc(x: Tensor, edge_index: Tensor, graph: Data, or
     
     counterfactual = Data(x=x, 
                           edge_index=edge_index, 
+                          edge_attr=edge_attr,
                           y=torch.argmax(output_actual, dim=1),
                           x_projection=torch.mean(oracle.get_embedding_repr(x, edge_index, graph.batch), dim=0))
     

@@ -71,6 +71,15 @@ def fidelity(factual: Data, counterfactual: Data) -> float:
     return prediction_fidelity - counterfactual_fidelity
 
 
+def edge_attr_sparsity(factual: Data, counterfactual: Data) -> float:
+    
+    # Calculate the number of modified node attributes
+    modified_attributes = torch.sum(factual.edge_attr != counterfactual.edge_attr)
+    # Calculate the node sparsity
+    sparsity = modified_attributes / factual.x.numel()
+    return sparsity.item()
+
+
 def edge_sparsity(factual: Data, counterfactual: Data) -> float:
     """
     Calculate the edge sparsity between the factual and counterfactual graphs using edge indices.

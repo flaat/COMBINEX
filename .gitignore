@@ -2,6 +2,11 @@ processed
 runs
 results
 data/models
+data/Cuneiform
+data/Fingerprint
+data/imdb
+data/QM9
+data/pubmed
 outputs
 imgs
 artifacts
@@ -13,7 +18,7 @@ __pycache__
 # Ignore log files
 *.log
 *.json
-
+*.csv
 wandb
 .vscode
 data/aids

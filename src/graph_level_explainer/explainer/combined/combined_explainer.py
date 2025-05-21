@@ -68,17 +68,21 @@ class CombinedExplainer(ExplainerABC):
         self.optimizer.zero_grad()
 
         differentiable_output = self.graph_perturber.forward(graph.x, graph.batch) 
-        model_out, V_pert, EP_x = self.graph_perturber.forward_prediction(graph.x, graph.batch) 
+        model_out, V_pert, EP_x, edge_attr_pert = self.graph_perturber.forward_prediction(graph.x, graph.batch) 
         
         y_pred_new_actual = torch.argmax(model_out, dim=1)
         y_pred_differentiable = torch.argmax(differentiable_output, dim=1)
         
         edge_loss, cf_edges = self.graph_perturber.edge_loss(graph)
         node_loss, _ = self.graph_perturber.node_loss(graph)
+        
+        if self.graph_perturber.has_edge_attrs:
+            edge_attr_loss,_ = self.graph_perturber.edge_attr_loss(graph)
+        
         alpha = self.get_alpha(epoch, edge_loss, node_loss)
         eta = ((y_pred_new_actual != graph.targets) or (graph.targets != y_pred_differentiable)).float()
         loss_pred = torch.nn.functional.cross_entropy(differentiable_output, graph.targets.unsqueeze(0))
-        loss = eta * loss_pred + (1 - alpha) * edge_loss + alpha * node_loss
+        loss = eta * loss_pred + (1 - alpha) * edge_loss + alpha * (node_loss + edge_attr_loss)
         loss.backward()        
         self.optimizer.step()
         counterfactual = None
@@ -87,6 +91,7 @@ class CombinedExplainer(ExplainerABC):
             
             counterfactual = build_counterfactual_graph_gc(x=V_pert,
                                        edge_index=cf_edges, 
+                                       edge_attr=edge_attr_pert,
                                        graph=graph, 
                                        oracle=oracle, 
                                        output_actual=model_out, 

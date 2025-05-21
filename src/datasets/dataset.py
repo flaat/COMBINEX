@@ -18,6 +18,10 @@ class DataInfo:
         except:
             self.num_classes = self.data.dataset.data.y.unique().shape[0] if cfg.dataset.name != "Facebook" else 193
         self.discrete_mask = self.data.discrete_mask
+        if hasattr(self.data, "discrete_edge_attr_mask"):
+            self.discrete_edge_attr_mask = self.data.discrete_edge_attr_mask
+            self.min_range_edges = self.data.min_range_edges
+            self.max_range_edges = self.data.max_range_edges
         self.min_range = self.data.min_range
         self.max_range = self.data.max_range
         del self.data

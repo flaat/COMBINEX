@@ -2,7 +2,7 @@ from typing import Union
 import pandas as pd
 import os
 from src.datasets.dataset import DataInfo
-from ..metrics.metrics import perturbation_distance, graph_edit_distance, fidelity, sample_distance_from_mean, node_sparsity, edge_sparsity, sample_distance_from_mean_projection, factual_counterfactual_distance
+from ..metrics.metrics import perturbation_distance, graph_edit_distance, fidelity, sample_distance_from_mean, node_sparsity, edge_attr_sparsity, edge_sparsity, sample_distance_from_mean_projection, factual_counterfactual_distance
 from torch_geometric.data import Data
 import torch
 import matplotlib.pyplot as plt
@@ -25,6 +25,7 @@ def compute_metrics(factual: Data, counterfactual: Union[Data, None], data_info:
                 "Counterfactual Distance": torch.nan,
                 "Node Sparsity": torch.nan,
                 "Edge Sparsity": torch.nan,
+                "Edge attr Sparsity": torch.nan,
                 "Time": torch.nan,                
                 "Validity": False}
 
@@ -42,6 +43,7 @@ def compute_metrics(factual: Data, counterfactual: Union[Data, None], data_info:
                 "Counterfactual Distance": factual_counterfactual_distance(factual, counterfactual),
                 "Node Sparsity": node_sparsity(factual, counterfactual),
                 "Edge Sparsity": edge_sparsity(factual, counterfactual),
+                "Edge attr Sparsity": edge_attr_sparsity(factual, counterfactual) if hasattr(counterfactual, "edge_attr") and factual.edge_attr is not None else None,
                 "Time": time,
                 "Validity": True}
 
