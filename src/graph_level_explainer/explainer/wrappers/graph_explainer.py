@@ -10,7 +10,7 @@ from src.utils.explainer import get_graph_explainer, get_node_explainer
 from ....abstract.wrapper import Wrapper
 from ...utils.utils import check_graphs, plot_factual_and_counterfactual_graphs
 from ...evaluation.evaluate import compute_metrics
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 from torch.nn import Module
 import torch.multiprocessing as mp
 import wandb
@@ -65,9 +65,13 @@ class GraphExplainerWrapper(Wrapper):
         embedding_repr: torch.Tensor = torch.Tensor([]).to(device)
         for graphs_batch in self.train_loader:
             graphs_batch = graphs_batch.to(device)
-            output = oracle(graphs_batch.x, graphs_batch.edge_index, graphs_batch.batch).detach()
+            if hasattr(graphs_batch, "edge_attr"):
+                input_dict = {"x": graphs_batch.x, "edge_index": graphs_batch.edge_index, "batch": graphs_batch.batch, "edge_attr": graphs_batch.edge_attr}
+            else:
+                input_dict = {"x": graphs_batch.x, "edge_index": graphs_batch.edge_index, "batch": graphs_batch.batch}
+            output = oracle(**input_dict).detach()
             predicted_labels = torch.cat((torch.argmax(output, dim=1), predicted_labels))
-            embedding_repr = torch.cat((oracle.get_embedding_repr(graphs_batch.x, graphs_batch.edge_index, graphs_batch.batch).detach(), embedding_repr), dim=0)
+            embedding_repr = torch.cat((oracle.get_embedding_repr(**input_dict).detach(), embedding_repr), dim=0)
 
         datainfo.distribution_mean_projection = embedding_repr.mean(dim=0).cpu()
         target_labels = (1 + predicted_labels) % datainfo.num_classes

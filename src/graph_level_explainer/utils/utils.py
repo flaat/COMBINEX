@@ -307,12 +307,20 @@ def build_counterfactual_graph_gc(x: Tensor, edge_index: Tensor, graph: Data, or
         Data: A new Data object representing the counterfactual graph with updated attributes.
     """
     
+    input_dict = {}
+    
+    if edge_attr is not None:
+           
+        input_dict = {"x": x, "edge_index": edge_index, "batch": graph.batch, "edge_attr": edge_attr}
+
+    else:
+        input_dict = {"x": x, "edge_index": edge_index, "batch": graph.batch}
     
     counterfactual = Data(x=x, 
                           edge_index=edge_index, 
                           edge_attr=edge_attr,
                           y=torch.argmax(output_actual, dim=1),
-                          x_projection=torch.mean(oracle.get_embedding_repr(x, edge_index, graph.batch), dim=0))
+                          x_projection=torch.mean(oracle.get_embedding_repr(**input_dict), dim=0))
     
     return counterfactual
 

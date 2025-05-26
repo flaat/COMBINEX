@@ -3,7 +3,7 @@ from omegaconf import DictConfig
 from torch_geometric.data import Data
 import torch
 import numpy as np
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 
 class ExplainerABC(ABC):
 

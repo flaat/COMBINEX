@@ -7,7 +7,6 @@ import torch
 import os
 import numpy as np
 import random
-import imageio
 import matplotlib.pyplot as plt
 from torch_geometric.utils import to_dense_adj
 from src.node_level_explainer.utils.utils import normalize_adj
@@ -138,9 +137,7 @@ def node_embedding_visualization_history(path: str, model, file: str):
                             idx=i, 
                             loss=sum(counterfactual.loss.values()), 
                             dimensions=3,
-                            path=folder_path + f"/{num}")
-            make_gif(folder_path + f"/{num}")
-    
+                            path=folder_path + f"/{num}")    
 
 
 def plot_losses(path: str, file: str):
@@ -184,17 +181,3 @@ def plot_losses_separate_axes(losses):
     plt.tight_layout()
     plt.savefig(f'losses.png', dpi=400)
 
-
-def make_gif(path: str):
-
-    figures = len(os.listdir(path))
-
-
-    # Filepaths for the frames
-    filenames = [f'fig_{i}.png' for i in range(figures)]
-
-    # Create a GIF
-    with imageio.get_writer(f'{path}/cf.gif', mode='I', duration=0.45) as writer:  # Adjust duration as needed
-        for filename in filenames:
-            image = imageio.imread(path+"/"+filename)
-            writer.append_data(image)

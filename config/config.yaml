@@ -1,7 +1,7 @@
 defaults:
   - _self_
-  - dataset: fingerprint  # Can be: aids actor planetoid karate attributed webkb enzymes protein 
-  - model: gat # Can be: gcn gat cheb
+  - dataset: cuneiform  # Can be: aids actor planetoid karate attributed webkb enzymes protein 
+  - model: gine # Can be: gcn gat cheb
   - optimizer: adam
   - general: general_default
   - task:  graph # Can be: node or graph
@@ -18,13 +18,13 @@ seed: 1
 run_mode: run
 figure: False
 # Project name on wandb
-project: COMBINEX
+project: COMBINEX-TEST-EDGE-ATTR
 name: test
 
 # Eventual timeout in seconds to kill the process
 timeout: 500
 
 # Number of agents to carry out the simulation
-num_agents: 4
+num_agents: 1
 test_size: 0.2
 max_samples: 100

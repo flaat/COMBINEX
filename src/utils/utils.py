@@ -2,6 +2,18 @@ from typing import Any, Dict
 from omegaconf import DictConfig, DictKeyType
 import yaml
 
+def print_info(string: str) -> None:
+    from datetime import datetime
+    
+    """
+    Print a formatted string with additional arguments.
+    
+    Parameters:
+    - string (str): The format string.
+    - *args (Any): Additional arguments to format the string.
+    """
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {string}")
+
 
 def merge_dict(dict_1: dict | DictConfig, dict_2: dict):
 

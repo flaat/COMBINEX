@@ -5,6 +5,8 @@ from torch_geometric.nn import GCNConv, GraphConv, ChebConv, global_mean_pool
 from torch_geometric.nn import GINEConv, global_add_pool
 from torch_geometric.nn import GATConv, global_mean_pool
 
+from src.datasets.datainfo import DataInfo
+
 
 class GCN(nn.Module):
     """
@@ -16,8 +18,10 @@ class GCN(nn.Module):
         num_classes (int): Number of output classes.
         dropout (float, optional): Dropout rate. Default is 0.5.
     """
-    def __init__(self, num_features: int, num_classes: int, cfg):
+    def __init__(self, datainfo: DataInfo, cfg):
         super(GCN, self).__init__()
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -84,8 +88,10 @@ class ChebNet(nn.Module):
         K (int, optional): Chebyshev polynomial order. Default is 3.
         dropout (float, optional): Dropout rate. Default is 0.5.
     """
-    def __init__(self, num_features: int, num_classes: int, cfg):
+    def __init__(self, datainfo: DataInfo, cfg):
         super(ChebNet, self).__init__()
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -149,8 +155,10 @@ class GraphConvNet(nn.Module):
         num_classes (int): Number of output classes.
         dropout (float, optional): Dropout rate. Default is 0.5.
     """
-    def __init__(self, num_features: int, num_classes: int, cfg):
-        super(GraphConvNet, self).__init__()
+    def __init__(self, datainfo: DataInfo, cfg):
+        super(GraphConvNet, self).__init_
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes_()
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -203,8 +211,10 @@ class GraphConvNet(nn.Module):
         return x
 
 class GCN_G(nn.Module):
-    def __init__(self, num_features: int, num_classes: int, cfg):
+    def __init__(self, datainfo: DataInfo, cfg):
         super(GCN_G, self).__init__()
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -253,8 +263,10 @@ class GCN_G(nn.Module):
 
 
 class ChebNet_G(nn.Module):
-    def __init__(self, num_features: int, num_classes: int, cfg):
+    def __init__(self, datainfo: DataInfo, cfg):
         super(ChebNet_G, self).__init__()
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -302,8 +314,10 @@ class ChebNet_G(nn.Module):
         return x
 
 class GraphConvNet_G(nn.Module):
-    def __init__(self, num_features: int, num_classes: int, cfg):
-        super(GraphConvNet_G, self).__init__()
+    def __init__(self, datainfo: DataInfo, cfg):
+        super(GraphConvNet_G, self).__ini
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classest__()
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -360,8 +374,10 @@ class GINENet_G(nn.Module):
         num_classes (int): Number of output classes.
         cfg: Configuration object containing model parameters.
     """
-    def __init__(self, num_features: int, num_classes: int, cfg):
+    def __init__(self, datainfo: DataInfo, cfg):
         super(GINENet_G, self).__init__()
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -371,16 +387,11 @@ class GINENet_G(nn.Module):
             nn.ReLU(),
             nn.Linear(cfg.model.hidden_layers[0], cfg.model.hidden_layers[0])
         )
-        self.layers.append(GINEConv(nn1, edge_dim=cfg.model.edge_dim if hasattr(cfg.model, 'edge_dim') else None))
+        self.layers.append(GINEConv(nn1, edge_dim=datainfo.edge_attr_dim))
 
         # Hidden layers
         for i in range(1, len(cfg.model.hidden_layers)):
-            nn_layer = nn.Sequential(
-                nn.Linear(cfg.model.hidden_layers[i-1], cfg.model.hidden_layers[i]),
-                nn.ReLU(),
-                nn.Linear(cfg.model.hidden_layers[i], cfg.model.hidden_layers[i])
-            )
-            self.layers.append(GINEConv(nn_layer, edge_dim=cfg.model.hidden_layers[i]))
+            self.layers.append(GCNConv(cfg.model.hidden_layers[i-1], cfg.model.hidden_layers[i]))
 
         # Output layer
         self.output_layer = nn.Linear(cfg.model.hidden_layers[-1], num_classes)
@@ -399,7 +410,12 @@ class GINENet_G(nn.Module):
             torch.Tensor: Log-softmax output.
         """
         for layer in self.layers:
-            x = layer(x, edge_index, edge_attr)
+            
+            if type(layer) == GINEConv:
+            
+                x = layer(x, edge_index, edge_attr)
+            else:
+                x = layer(x, edge_index)
             x = F.relu(x)
             x = F.dropout(x, self.dropout, training=self.training)
         
@@ -422,7 +438,11 @@ class GINENet_G(nn.Module):
             torch.Tensor: Graph-level embedding representation.
         """
         for layer in self.layers:
-            x = F.relu(layer(x, edge_index, edge_attr))
+            if type(layer) == GINEConv:
+            
+                x = layer(x, edge_index, edge_attr)
+            else:
+                x = layer(x, edge_index)
             x = F.dropout(x, self.dropout, training=self.training)
         
         # Global pooling for graph-level representation
@@ -438,8 +458,10 @@ class GAT_G(nn.Module):
         num_classes (int): Number of output classes.
         cfg: Configuration object containing model parameters.
     """
-    def __init__(self, num_features: int, num_classes: int, cfg):
+    def __init__(self, datainfo: DataInfo, cfg):
         super(GAT_G, self).__init__()
+        num_features = datainfo.num_features
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
         

@@ -7,7 +7,7 @@ from .node_perturber import NodePerturber
 from omegaconf import DictConfig
 from ...utils.utils import build_counterfactual_graph_gc, get_optimizer
 from ....abstract.explainer import ExplainerABC  
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 
 
 class CFExplainerFeatures(ExplainerABC):

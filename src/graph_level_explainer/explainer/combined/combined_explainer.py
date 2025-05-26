@@ -8,8 +8,8 @@ from omegaconf import DictConfig
 from ...utils.utils import build_counterfactual_graph_gc, get_optimizer
 from ....abstract.explainer import ExplainerABC  
 from tqdm import tqdm 
-from src.datasets.dataset import DataInfo
-
+from src.datasets.datainfo import DataInfo
+from ....utils.utils import print_info
 
 class CombinedExplainer(ExplainerABC):
     """
@@ -81,8 +81,14 @@ class CombinedExplainer(ExplainerABC):
         
         alpha = self.get_alpha(epoch, edge_loss, node_loss)
         eta = ((y_pred_new_actual != graph.targets) or (graph.targets != y_pred_differentiable)).float()
+        
+        
         loss_pred = torch.nn.functional.cross_entropy(differentiable_output, graph.targets.unsqueeze(0))
+            
+        
         loss = eta * loss_pred + (1 - alpha) * edge_loss + alpha * (node_loss + edge_attr_loss)
+        
+    
         loss.backward()        
         self.optimizer.step()
         counterfactual = None

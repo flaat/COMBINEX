@@ -3,8 +3,8 @@ from src.oracles.models.models import GCN, ChebNet, GCN_G, ChebNet_G, GraphConvN
 from typing import Union
 
 
-def get_model(name: str, task: str) -> Union[GCN, ChebNet]:
-    print(f"{name=}, {task=}")
+def get_model(name: str, task: str) -> Union[nn.Module, None]:
+    
     
     if name == "GCN" and task == "Node":
         return GCN

@@ -24,6 +24,9 @@ class DataInfo:
             self.max_range_edges = self.data.max_range_edges
         self.min_range = self.data.min_range
         self.max_range = self.data.max_range
+        if hasattr(self.data, "discrete_edge_attr_mask"):
+            self.edge_attr_dim = self.data.discrete_edge_attr_mask.shape[0] 
+            
         del self.data
 
     def num_classes(self):

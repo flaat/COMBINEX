@@ -8,7 +8,7 @@ from omegaconf import DictConfig
 from ...utils.utils import build_counterfactual_graph, get_optimizer
 from ....abstract.explainer import ExplainerABC  
 from tqdm import tqdm 
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 
 
 class CombinedExplainer(ExplainerABC):

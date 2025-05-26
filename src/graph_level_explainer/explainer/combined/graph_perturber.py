@@ -9,7 +9,7 @@ from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 from typing import Tuple
 from ...utils.utils import discretize_to_nearest_integer
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 import inspect
 
 class GraphPerturber(Perturber):

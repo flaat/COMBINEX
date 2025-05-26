@@ -10,7 +10,7 @@ from src.utils.explainer import get_node_explainer
 from ....abstract.wrapper import Wrapper
 from ...utils.utils import build_factual_graph, check_graphs, plot_factual_and_counterfactual_graphs
 from ...evaluation.evaluate import compute_metrics
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 from torch.nn import Module
 import torch.multiprocessing as mp
 import wandb

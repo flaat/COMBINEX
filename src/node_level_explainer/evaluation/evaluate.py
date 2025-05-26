@@ -1,7 +1,7 @@
 from typing import Union
 import pandas as pd
 import os
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 from ..metrics.metrics import perturbation_distance, graph_edit_distance, fidelity, sample_distance_from_mean, node_sparsity, edge_sparsity, sample_distance_from_mean_projection, factual_counterfactual_distance
 from torch_geometric.data import Data
 import torch

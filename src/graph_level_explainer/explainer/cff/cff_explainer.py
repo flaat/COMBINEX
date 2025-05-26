@@ -3,7 +3,7 @@ import torch
 from torch_geometric.data import Data
 import time
 from src.abstract.explainer import ExplainerABC
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 from ...utils.utils import build_counterfactual_graph_gc
 
 

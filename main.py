@@ -3,13 +3,14 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import torch
 import wandb
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 from src.graph_level_explainer.explainer.wrappers.graph_explainer import GraphExplainerWrapper
 from src.utils.dataset import get_dataset
 import random
 from src.utils.models import get_model
 from src.utils.utils import flatten_dict, merge_hydra_wandb, read_yaml
 import os
+from datetime import datetime
 
 
 def log_params(cfg: DictConfig) -> None:
@@ -54,13 +55,13 @@ def train(cfg):
         set_run_name(cfg, run)
 
         device = "cuda" if torch.cuda.is_available() and cfg.device == "cuda" else "cpu"
+        
         dataset = get_dataset(cfg.dataset.name, test_size=cfg.test_size)
         datainfo = DataInfo(cfg, dataset)
         wrapper = NodesExplainerWrapper(cfg=cfg, wandb_run=run.name) if cfg.task.name == "Node" else GraphExplainerWrapper(cfg=cfg, wandb_run=run.name)
         oracle = get_model(name=cfg.model.name, task=cfg.task.name)
         oracle = oracle(
-            num_features=datainfo.num_features,
-            num_classes=datainfo.num_classes,
+            datainfo=datainfo,
             cfg=cfg
         )       
         

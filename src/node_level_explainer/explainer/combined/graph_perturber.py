@@ -16,7 +16,7 @@ from torch_geometric.data import Data
 from typing import Tuple
 from ...utils.utils import discretize_to_nearest_integer
 from ...perturber.pertuber import Perturber   
-from src.datasets.dataset import DataInfo
+from src.datasets.datainfo import DataInfo
 
 class GraphPerturber(Perturber):
 

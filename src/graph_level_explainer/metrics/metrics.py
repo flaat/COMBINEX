@@ -76,7 +76,7 @@ def edge_attr_sparsity(factual: Data, counterfactual: Data) -> float:
     # Calculate the number of modified node attributes
     modified_attributes = torch.sum(factual.edge_attr != counterfactual.edge_attr)
     # Calculate the node sparsity
-    sparsity = modified_attributes / factual.x.numel()
+    sparsity = modified_attributes / factual.edge_attr.numel()
     return sparsity.item()
 
 

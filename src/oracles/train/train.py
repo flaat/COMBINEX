@@ -58,7 +58,9 @@ class GraphTrainer:
         with torch.no_grad():
             for data in self.test_loader:
                 data = data.to(self.device)
-                output = self.model(data.x, data.edge_index, data.batch)
+                input_dict = {"x": data.x, "edge_index": data.edge_index, "batch": data.batch, "edge_attr": data.edge_attr}
+
+                output = self.model(**input_dict)
                 loss_test = self.loss(output, data.y.squeeze().long())
                 total_loss += loss_test.item()
                 y_pred = torch.argmax(output, dim=1)
