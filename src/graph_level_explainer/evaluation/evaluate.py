@@ -43,7 +43,7 @@ def compute_metrics(factual: Data, counterfactual: Union[Data, None], data_info:
                 "Counterfactual Distance": factual_counterfactual_distance(factual, counterfactual),
                 "Node Sparsity": node_sparsity(factual, counterfactual),
                 "Edge Sparsity": edge_sparsity(factual, counterfactual),
-                "Edge attr Sparsity": edge_attr_sparsity(factual, counterfactual) if hasattr(counterfactual, "edge_attr") and factual.edge_attr is not None else None,
+                "Edge attr Sparsity": edge_attr_sparsity(factual, counterfactual) if hasattr(counterfactual, "edge_attr") and counterfactual.edge_attr is not None else None,
                 "Time": time,
                 "Validity": True}
 

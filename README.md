@@ -29,6 +29,7 @@ Create a Conda env and install **Python 3.11.10**
 conda create --name combinex
 conda activate combinex
 conda install python=3.11.10
+pip install torch==2.50
 ```
 To install the required dependencies, run:
 

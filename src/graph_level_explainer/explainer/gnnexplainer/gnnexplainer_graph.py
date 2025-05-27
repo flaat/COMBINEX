@@ -92,7 +92,7 @@ class GNNExplainerWrap(ExplainerABC):
         counterfactual_pred = counterfactual_out.argmax(dim=1)
 
         # Store the counterfactual results
-        counterfactual = Data(x=counterfactual_data.x, edge_index=counterfactual_data.edge_index, y=counterfactual_pred)
+        #counterfactual = Data(x=counterfactual_data.x, edge_index=counterfactual_data.edge_index, y=counterfactual_pred)
         
         # Check if the counterfactual prediction matches the target and has a lower loss
         if (counterfactual_pred == graph.targets):
@@ -101,7 +101,7 @@ class GNNExplainerWrap(ExplainerABC):
         
         # Check if the timeout has been reached
         if time.time() - start > self.cfg.timeout:
-            return counterfactual
+            return None
         
         return None
         
