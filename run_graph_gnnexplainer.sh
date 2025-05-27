@@ -2,7 +2,7 @@
 
 # Example list of technique names
 technique_names=("gnnexplainer")  # Replace with your actual technique names "cf-gnnfeatures" "cf-gnn"  "random-feat" "random" "ego" "cff" "combined" "unr"  "cff" "combined"
-dataset=("aids_g" "enzymes_g" "protein_g" "coil") 
+dataset=( "proteins_g") # "aids_g" "enzymes_g" "coil"
 policies=("constant" "linear" "exponential" "sinusoidal" "dynamic" )
 model="graph"
 for data in "${dataset[@]}"; do

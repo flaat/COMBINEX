@@ -315,9 +315,9 @@ class ChebNet_G(nn.Module):
 
 class GraphConvNet_G(nn.Module):
     def __init__(self, datainfo: DataInfo, cfg):
-        super(GraphConvNet_G, self).__ini
+        super(GraphConvNet_G, self).__init__()
         num_features = datainfo.num_features
-        num_classes = datainfo.num_classest__()
+        num_classes = datainfo.num_classes
         self.layers = nn.ModuleList()
         self.dropout = cfg.model.dropout
 
@@ -331,7 +331,7 @@ class GraphConvNet_G(nn.Module):
         # Output layer
         self.output_layer = nn.Linear(cfg.model.hidden_layers[-1], num_classes)
 
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, batch: torch.Tensor, edge_weights: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, batch: torch.Tensor = None, edge_weights: torch.Tensor = None) -> torch.Tensor:
         for layer in self.layers:
             if edge_weights is not None:
                 x = F.relu(layer(x, edge_index, edge_weight=edge_weights))
@@ -339,6 +339,8 @@ class GraphConvNet_G(nn.Module):
                 x = F.relu(layer(x, edge_index))
             x = F.dropout(x, self.dropout, training=self.training)
         
+        if batch is None:
+            batch = torch.zeros(x.size(0), dtype=torch.long, device=x.device)
         # Global pooling
         x = global_mean_pool(x, batch)  # Replace with global_max_pool if needed
         x = self.output_layer(x)

@@ -1,4 +1,4 @@
 name: ${name}
 project: ${project}
-mode: online
+mode: offline
 config: normal_test

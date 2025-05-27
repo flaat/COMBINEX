@@ -65,7 +65,7 @@ class GraphExplainerWrapper(Wrapper):
         embedding_repr: torch.Tensor = torch.Tensor([]).to(device)
         for graphs_batch in self.train_loader:
             graphs_batch = graphs_batch.to(device)
-            if hasattr(graphs_batch, "edge_attr"):
+            if type(oracle) == "GINENet_G" or type(oracle) == "GAT_G":
                 input_dict = {"x": graphs_batch.x, "edge_index": graphs_batch.edge_index, "batch": graphs_batch.batch, "edge_attr": graphs_batch.edge_attr}
             else:
                 input_dict = {"x": graphs_batch.x, "edge_index": graphs_batch.edge_index, "batch": graphs_batch.batch}
@@ -112,7 +112,7 @@ class GraphExplainerWrapper(Wrapper):
                                  "x_projection": embedding_repr.cpu(), 
                                  "y_ground": predicted_labels[pid].cpu()}
                     
-                    if hasattr(graph, "edge_attr"):
+                    if hasattr(graph, "edge_attr") and graph.edge_attr is not None:
                         arguments["edge_attr"] = graph.edge_attr.cpu()
                     
                     factual = Data(**arguments)

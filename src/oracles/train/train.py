@@ -61,8 +61,10 @@ class GraphTrainer:
         with torch.no_grad():
             for data in self.test_loader:
                 data = data.to(self.device)
-                input_dict = {"x": data.x, "edge_index": data.edge_index, "batch": data.batch, "edge_attr": data.edge_attr}
-
+                if self.cfg.model.name == "GAT" or self.cfg.model.name == "GINE":
+                    input_dict = {"x": data.x, "edge_index": data.edge_index, "batch": data.batch, "edge_attr": data.edge_attr}
+                else:
+                    input_dict = {"x": data.x, "edge_index": data.edge_index, "batch": data.batch}
                 output = self.model(**input_dict)
                 loss_test = self.loss(output, data.y.squeeze().long())
                 total_loss += loss_test.item()

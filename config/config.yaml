@@ -12,13 +12,13 @@ defaults:
 verbose: False
 random_num_epochs: 500
 device: cuda
-workers: 1
+workers: 4
 path: ""
 seed: 1
 run_mode: run
 figure: False
 # Project name on wandb
-project: COMBINEX-TEST-EDGE-ATTR
+project: COMBINEX
 name: test
 
 # Eventual timeout in seconds to kill the process
