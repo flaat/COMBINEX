@@ -5,112 +5,327 @@ from sklearn.model_selection import train_test_split
 from torch_geometric.data import Data, InMemoryDataset
 import torch
 import pickle
-from torch_geometric.utils import dense_to_sparse
+from torch_geometric.utils import dense_to_sparse, to_undirected
+from torch_geometric.transforms import RandomLinkSplit
 
 #TODO aggiungi dataset syntie e aggiungi le maschere e altre cose a tutti i dataset
 
-def get_dataset(dataset_name: str = None, test_size: float = 0.2)->Data:
-    """_summary_
+def get_dataset(dataset_name: str = None, test_size: float = 0.2, task_type: str = None) -> Data:
+    """
+    Get dataset for different task types.
 
     Args:
-        dataset_name (str, optional): _description_. Defaults to None.
+        dataset_name (str, optional): Name of the dataset.
+        test_size (float): Test set size ratio.
+        task_type (str): Type of task - "node", "graph", or "link".
 
     Returns:
-        Data: _description_
+        Data: PyTorch Geometric Data object.
     """
+    
     if dataset_name in ["cora", "pubmed", "citeseer"]:
         from torch_geometric.datasets import Planetoid
 
-        dataset = Planetoid(root="data", name=dataset_name) [0]      
+        dataset = Planetoid(root="data", name=dataset_name)[0]      
         
         discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])]) 
-        
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
-        
         min_range = torch.min(dataset.x, dim=0)[0]
         max_range = torch.max(dataset.x, dim=0)[0]
-
-        train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
         
-        return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
+        if task_type == "link":
+            # Create link prediction version
+            edge_index = to_undirected(dataset.edge_index)
+            
+            transform = RandomLinkSplit(
+                num_val=0.1,
+                num_test=test_size,
+                is_undirected=True,
+                add_negative_train_samples=False,
+                neg_sampling_ratio=1.0,
+            )
+            
+            train_data, val_data, test_data = transform(
+                Data(x=dataset.x, edge_index=edge_index, y=dataset.y, num_nodes=dataset.x.size(0))
+            )
+            
+            print(f"Link Prediction Dataset: {dataset_name}")
+            print(f"Nodes: {dataset.x.size(0)}")
+            print(f"Total edges: {edge_index.size(1)}")
+            print(f"Training edges: {train_data.edge_index.size(1)}")
+            print(f"Validation edges: {val_data.edge_index.size(1)}")
+            print(f"Test edges: {test_data.edge_index.size(1)}")
+            
+            return Data(
+                x=dataset.x,
+                edge_index=edge_index,
+                y=dataset.y,
+                num_nodes=dataset.x.size(0),
+                train_pos_edge_index=train_data.edge_index,
+                val_pos_edge_index=val_data.edge_index,
+                test_pos_edge_index=test_data.edge_index,
+                discrete_mask=discrete_mask,
+                min_range=min_range,
+                max_range=max_range,
+                task_type="link",
+                dataset_name=dataset_name
+            )
+        else:
+            # Original node classification version
+            ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
+            train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
+            
+            return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
     
     elif dataset_name == "karate":
         from torch_geometric.datasets import KarateClub
         
         dataset = KarateClub()[0]
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
-        train_index, test_index = train_test_split(ids, test_size=0.2, random_state=random.randint(0, 100))
-
+        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
         min_range = torch.min(dataset.x, dim=0)[0]
         max_range = torch.max(dataset.x, dim=0)[0]
         
-        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
-        
-        return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
+        if task_type == "link":
+            edge_index = to_undirected(dataset.edge_index)
+            
+            transform = RandomLinkSplit(
+                num_val=0.1,
+                num_test=test_size,
+                is_undirected=True,
+                add_negative_train_samples=False,
+                neg_sampling_ratio=1.0,
+            )
+            
+            train_data, val_data, test_data = transform(
+                Data(x=dataset.x, edge_index=edge_index, y=dataset.y, num_nodes=dataset.x.size(0))
+            )
+            
+            print(f"Karate Club Link Prediction Dataset")
+            print(f"Nodes: {dataset.x.size(0)}")
+            print(f"Total edges: {edge_index.size(1)}")
+            print(f"Training edges: {train_data.edge_index.size(1)}")
+            print(f"Validation edges: {val_data.edge_index.size(1)}")
+            print(f"Test edges: {test_data.edge_index.size(1)}")
+            
+            return Data(
+                x=dataset.x,
+                edge_index=edge_index,
+                y=dataset.y,
+                num_nodes=dataset.x.size(0),
+                train_pos_edge_index=train_data.edge_index,
+                val_pos_edge_index=val_data.edge_index,
+                test_pos_edge_index=test_data.edge_index,
+                discrete_mask=discrete_mask,
+                min_range=min_range,
+                max_range=max_range,
+                task_type="link",
+                dataset_name="karate"
+            )
+        else:
+            ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
+            train_index, test_index = train_test_split(ids, test_size=0.2, random_state=random.randint(0, 100))
+            
+            return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
     
     elif dataset_name == "twitch":
         from torch_geometric.datasets import Twitch
 
         dataset = Twitch(root="data", name="EN")[0]
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
-        
-        train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
-        
-        min_range = torch.min(dataset.x, dim=0)[0]
-        max_range = torch.max(dataset.x, dim=0)[0]  
-        
-        
         discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
+        min_range = torch.min(dataset.x, dim=0)[0]
+        max_range = torch.max(dataset.x, dim=0)[0]
         
-        return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
+        if task_type == "link":
+            edge_index = to_undirected(dataset.edge_index)
+            
+            transform = RandomLinkSplit(
+                num_val=0.1,
+                num_test=test_size,
+                is_undirected=True,
+                add_negative_train_samples=False,
+                neg_sampling_ratio=1.0,
+            )
+            
+            train_data, val_data, test_data = transform(
+                Data(x=dataset.x, edge_index=edge_index, y=dataset.y, num_nodes=dataset.x.size(0))
+            )
+            
+            print(f"Twitch Link Prediction Dataset")
+            print(f"Nodes: {dataset.x.size(0)}")
+            print(f"Total edges: {edge_index.size(1)}")
+            print(f"Training edges: {train_data.edge_index.size(1)}")
+            print(f"Validation edges: {val_data.edge_index.size(1)}")
+            print(f"Test edges: {test_data.edge_index.size(1)}")
+            
+            return Data(
+                x=dataset.x,
+                edge_index=edge_index,
+                y=dataset.y,
+                num_nodes=dataset.x.size(0),
+                train_pos_edge_index=train_data.edge_index,
+                val_pos_edge_index=val_data.edge_index,
+                test_pos_edge_index=test_data.edge_index,
+                discrete_mask=discrete_mask,
+                min_range=min_range,
+                max_range=max_range,
+                task_type="link",
+                dataset_name="twitch"
+            )
+        else:
+            ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
+            train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
+            
+            return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
     
     elif dataset_name == "actor":
         from torch_geometric.datasets import Actor
         
-
         dataset = Actor(root="data")[0]
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
-        
+        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
         min_range = torch.min(dataset.x, dim=0)[0]
         max_range = torch.max(dataset.x, dim=0)[0]
         
-        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
-        
-        train_index, test_index = train_test_split(ids, test_size=0.03, random_state=random.randint(0, 100))
-        return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
+        if task_type == "link":
+            edge_index = to_undirected(dataset.edge_index)
+            
+            transform = RandomLinkSplit(
+                num_val=0.05,  # Smaller validation set for Actor
+                num_test=test_size,
+                is_undirected=True,
+                add_negative_train_samples=False,
+                neg_sampling_ratio=1.0,
+            )
+            
+            train_data, val_data, test_data = transform(
+                Data(x=dataset.x, edge_index=edge_index, y=dataset.y, num_nodes=dataset.x.size(0))
+            )
+            
+            print(f"Actor Link Prediction Dataset")
+            print(f"Nodes: {dataset.x.size(0)}")
+            print(f"Total edges: {edge_index.size(1)}")
+            print(f"Training edges: {train_data.edge_index.size(1)}")
+            print(f"Validation edges: {val_data.edge_index.size(1)}")
+            print(f"Test edges: {test_data.edge_index.size(1)}")
+            
+            return Data(
+                x=dataset.x,
+                edge_index=edge_index,
+                y=dataset.y,
+                num_nodes=dataset.x.size(0),
+                train_pos_edge_index=train_data.edge_index,
+                val_pos_edge_index=val_data.edge_index,
+                test_pos_edge_index=test_data.edge_index,
+                discrete_mask=discrete_mask,
+                min_range=min_range,
+                max_range=max_range,
+                task_type="link",
+                dataset_name="actor"
+            )
+        else:
+            ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
+            train_index, test_index = train_test_split(ids, test_size=0.03, random_state=random.randint(0, 100))
+            
+            return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)
     
     elif dataset_name in ["Cornell", "Texas", "Wisconsin"]:
         from torch_geometric.datasets import WebKB
         
-
-        dataset = WebKB(root="data", name=dataset_name)[0]  
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
-        
-        train_index, test_index = train_test_split(ids, test_size=0.2, random_state=random.randint(0, 100))
-        
+        dataset = WebKB(root="data", name=dataset_name)[0]
+        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
         min_range = torch.min(dataset.x, dim=0)[0]
         max_range = torch.max(dataset.x, dim=0)[0]
         
-        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
-        
-        return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)   
+        if task_type == "link":
+            edge_index = to_undirected(dataset.edge_index)
+            
+            transform = RandomLinkSplit(
+                num_val=0.1,
+                num_test=test_size,
+                is_undirected=True,
+                add_negative_train_samples=False,
+                neg_sampling_ratio=1.0,
+            )
+            
+            train_data, val_data, test_data = transform(
+                Data(x=dataset.x, edge_index=edge_index, y=dataset.y, num_nodes=dataset.x.size(0))
+            )
+            
+            print(f"{dataset_name} Link Prediction Dataset")
+            print(f"Nodes: {dataset.x.size(0)}")
+            print(f"Total edges: {edge_index.size(1)}")
+            print(f"Training edges: {train_data.edge_index.size(1)}")
+            print(f"Validation edges: {val_data.edge_index.size(1)}")
+            print(f"Test edges: {test_data.edge_index.size(1)}")
+            
+            return Data(
+                x=dataset.x,
+                edge_index=edge_index,
+                y=dataset.y,
+                num_nodes=dataset.x.size(0),
+                train_pos_edge_index=train_data.edge_index,
+                val_pos_edge_index=val_data.edge_index,
+                test_pos_edge_index=test_data.edge_index,
+                discrete_mask=discrete_mask,
+                min_range=min_range,
+                max_range=max_range,
+                task_type="link",
+                dataset_name=dataset_name
+            )
+        else:
+            ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
+            train_index, test_index = train_test_split(ids, test_size=0.2, random_state=random.randint(0, 100))
+            
+            return Data(x=dataset.x, edge_index=dataset.edge_index, y=dataset.y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)   
      
     elif dataset_name in ["Wiki", "BlogCatalog", "Facebook", "PPI"]:
         from torch_geometric.datasets import AttributedGraphDataset
 
         dataset = AttributedGraphDataset(root="data", name=dataset_name)[0]
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1)
         y = dataset.y if dataset_name != "Facebook" else torch.argmax(dataset.y, dim=1)
-        
-        ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
-        train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
-        
+        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
         min_range = torch.min(dataset.x, dim=0)[0]
         max_range = torch.max(dataset.x, dim=0)[0]
         
-        discrete_mask = torch.Tensor([1 for i in range(dataset.x.shape[1])])
-        
-        return Data(x=dataset.x, edge_index=dataset.edge_index, y=y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)           
+        if task_type == "link":
+            edge_index = to_undirected(dataset.edge_index)
+            
+            transform = RandomLinkSplit(
+                num_val=0.1,
+                num_test=test_size,
+                is_undirected=True,
+                add_negative_train_samples=False,
+                neg_sampling_ratio=1.0,
+            )
+            
+            train_data, val_data, test_data = transform(
+                Data(x=dataset.x, edge_index=edge_index, y=y, num_nodes=dataset.x.size(0))
+            )
+            
+            print(f"{dataset_name} Link Prediction Dataset")
+            print(f"Nodes: {dataset.x.size(0)}")
+            print(f"Total edges: {edge_index.size(1)}")
+            print(f"Training edges: {train_data.edge_index.size(1)}")
+            print(f"Validation edges: {val_data.edge_index.size(1)}")
+            print(f"Test edges: {test_data.edge_index.size(1)}")
+            
+            return Data(
+                x=dataset.x,
+                edge_index=edge_index,
+                y=y,
+                num_nodes=dataset.x.size(0),
+                train_pos_edge_index=train_data.edge_index,
+                val_pos_edge_index=val_data.edge_index,
+                test_pos_edge_index=test_data.edge_index,
+                discrete_mask=discrete_mask,
+                min_range=min_range,
+                max_range=max_range,
+                task_type="link",
+                dataset_name=dataset_name
+            )
+        else:
+            ids = torch.arange(start=0, end=dataset.x.shape[0]-1, step=1).tolist()
+            train_index, test_index = train_test_split(ids, test_size=test_size, random_state=random.randint(0, 100))
+            
+            return Data(x=dataset.x, edge_index=dataset.edge_index, y=y, train_mask=train_index, test_mask=test_index, discrete_mask=discrete_mask, min_range=min_range, max_range=max_range)           
         
     elif "syn" in dataset_name:
         with open(f"data/{dataset_name}.pickle","rb") as f:
@@ -494,127 +709,62 @@ def get_dataset(dataset_name: str = None, test_size: float = 0.2)->Data:
                    min_range_edges=min_range_edges, max_range_edges=max_range_edges,
                    discrete_edge_attr_mask=discrete_edge_attr_mask)
     else:
+        # Check if it's a link prediction request for unsupported dataset
+        if task_type == "link":
+            supported_lp_datasets = [
+                "cora", "pubmed", "citeseer", "karate", "twitch", "actor",
+                "Cornell", "Texas", "Wisconsin", "Wiki", "BlogCatalog", "Facebook", "PPI"
+            ]
+            raise ValueError(f"Dataset '{dataset_name}' not supported for link prediction. "
+                           f"Supported datasets: {supported_lp_datasets}")
+        
         raise Exception("Choose a valid dataset!")
-    
-    
+
+
+def get_supported_datasets() -> dict:
+    """Get dictionary of supported datasets by task type."""
+    return {
+        "node_classification": [
+            "cora", "pubmed", "citeseer", "karate", "twitch", "actor",
+            "Cornell", "Texas", "Wisconsin", "Wiki", "BlogCatalog", "Facebook", "PPI"
+        ],
+        "graph_classification": [
+            "AIDS-G", "ENZYMES-G", "PROTEINS-G", "COIL-DEL", "HIV", 
+            "FINGERPRINT", "CUNEIFORM", "QM9"
+        ],
+        "link": [
+            "cora", "pubmed", "citeseer", "karate", "twitch", "actor",
+            "Cornell", "Texas", "Wisconsin", "Wiki", "BlogCatalog", "Facebook", "PPI"
+        ]
+    }
+
 
 if __name__ == "__main__":
     import networkx as nx
 
+    # Test different task types
+    print("=" * 50)
+    print("Testing Node Classification:")
+    data_node = get_dataset("cora", task_type="node")
+    print(f"Node data: {data_node}")
     
-    data = get_dataset("CUNEIFORM")
+    print("\n" + "=" * 50)
+    print("Testing Link Prediction:")
+    data_lp = get_dataset("cora", task_type="link")
+    print(f"Link prediction data: {data_lp}")
+    print(f"Task type: {getattr(data_lp, 'task_type', 'Not specified')}")
+    print(f"Train edges: {data_lp.train_pos_edge_index.size(1)}")
+    print(f"Val edges: {data_lp.val_pos_edge_index.size(1)}")
+    print(f"Test edges: {data_lp.test_pos_edge_index.size(1)}")
     
-    print(data)
-    print(data.x)
+    print("\n" + "=" * 50)
+    print("Testing Graph Classification:")
+    data_graph = get_dataset("AIDS-G", task_type="graph")
+    print(f"Graph data: {data_graph}")
     
-    def plot_graph(data, node_size=300, figsize=(10, 10), title="Graph", save_path=None):
-        """
-        Plot a graph from PyTorch Geometric Data or Dataset using node features as coordinates
-        and edge attributes for coloring edges.
-        
-        Args:
-            data: PyTorch Geometric Data or Dataset
-            node_size: Size of the nodes
-            figsize: Size of the figure
-            title: Title of the plot
-            save_path: Path to save the figure
-        """
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        
-        plt.figure(figsize=figsize)
-        
-        # Check if it's a single graph or from a dataset
-        if hasattr(data, 'dataset'):
-            # Get a sample graph from the dataset
-            sample = data.dataset[34]
-            print(sample)
-            print(sample.x)
-            print(sample.edge_attr)
-            G = nx.Graph()
-            
-            # Add nodes
-            for i in range(sample.x.shape[0]):
-                G.add_node(i)
-            
-            # Add edges with attributes if available
-            edge_index = sample.edge_index.t().tolist()
-            if hasattr(sample, 'edge_attr') and sample.edge_attr is not None:
-                for idx, (src, dst) in enumerate(edge_index):
-                    G.add_edge(src, dst, attr=sample.edge_attr[idx].tolist())
-            else:
-                for src, dst in edge_index:
-                    G.add_edge(src, dst)
-            
-            # Store y data for coloring
-            if hasattr(sample, 'y'):
-                y_data = sample.y
-            
-            # Use node features as 2D positions (assuming first two features are x,y coords)
-            pos = {i: (float(sample.x[i][0]), float(sample.x[i][1])) for i in range(sample.x.shape[0])}
-        else:
-            # Handle single graph case
-            G = nx.Graph()
-            for i in range(data.x.shape[0]):
-                G.add_node(i)
-            
-            edge_index = data.edge_index.t().tolist()
-            if hasattr(data, 'edge_attr') and data.edge_attr is not None:
-                for idx, (src, dst) in enumerate(edge_index):
-                    G.add_edge(src, dst, attr=data.edge_attr[idx].tolist())
-            else:
-                for src, dst in edge_index:
-                    G.add_edge(src, dst)
-            
-            if hasattr(data, 'y'):
-                y_data = data.y
-                
-            # Use node features as 2D positions
-            pos = {i: (float(data.x[i][0]), float(data.x[i][1])) for i in range(data.x.shape[0])}
-        
-        # Draw the graph
-        # Color nodes by class if y is available
-        if 'y_data' in locals():
-            if y_data.dim() > 1 and y_data.shape[0] == 1:
-                # Handle case where y is a single value
-                colors = plt.cm.tab10(0)
-                nx.draw_networkx_nodes(G, pos, node_color=[colors], node_size=node_size)
-            else:
-                y_numpy = y_data.numpy().flatten()
-                if len(y_numpy) == 1 and len(G.nodes()) > 1:
-                    # If there's only one label but multiple nodes, apply it to all
-                    y_numpy = np.array([y_numpy[0]] * len(G.nodes()))
-                
-                # Ensure we have the right number of colors
-                if len(y_numpy) != len(G.nodes()):
-                    # Default to using a single color if dimensions don't match
-                    nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=node_size)
-                else:
-                    # Use a colormap with enough colors for all classes
-                    num_classes = len(np.unique(y_numpy))
-                    cmap = plt.cm.get_cmap('tab10')
-                    nx.draw_networkx_nodes(G, pos, node_color=y_numpy, cmap=cmap, node_size=node_size)
-        else:
-            nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=node_size)
-        
-        # Draw edges with colors based on edge attributes if available
-        if any('attr' in d for _, _, d in G.edges(data=True)):
-            # Get edge colors from the first attribute in edge_attr
-            edge_colors = [d.get('attr', [0])[0] for _, _, d in G.edges(data=True)]
-            nx.draw_networkx_edges(G, pos, alpha=0.7, width=1.5, edge_color=edge_colors, edge_cmap=plt.cm.coolwarm)
-        else:
-            nx.draw_networkx_edges(G, pos, alpha=0.5)
-        
-        # Add labels to nodes
-        labels = {i: str(i) for i in range(len(G.nodes()))}
-        nx.draw_networkx_labels(G, pos, labels, font_size=8)
-        
-        plt.title(title)
-        plt.axis('off')
-        
-        if save_path:
-            plt.savefig(save_path)
-        
-        plt.show()
-    plot_graph(data)
+    # Show supported datasets
+    print("\n" + "=" * 50)
+    print("Supported datasets:")
+    supported = get_supported_datasets()
+    for task, datasets in supported.items():
+        print(f"{task}: {datasets}")

@@ -8,15 +8,17 @@ class DataInfo:
     def __init__(self, cfg: OmegaConf, data: Dataset) -> None:
         self.device = "cuda" if torch.cuda.is_available() and cfg.device == "cuda" else "cpu"
         self.data = data
-        self.distribution_mean = torch.mean(self.data.x, dim=0).cpu() if cfg.task.name == "Node" else torch.mean(self.data.dataset.data.x.float(), dim=0).cpu()
+        self.distribution_mean = torch.mean(self.data.x, dim=0).cpu() if cfg.task.name == "Node" or cfg.task.name == "Link" else torch.mean(self.data.dataset.data.x.float(), dim=0).cpu()
         self._distribution_mean_projection = None
         self.kfold = None
         self.inv_covariance_matrix = None
-        self.num_features = self.data.x.shape[1] if cfg.task.name == "Node" else self.data.dataset.data.x.shape[1]
+        self.num_features = self.data.x.shape[1] if cfg.task.name == "Node" or cfg.task.name == "Link" else self.data.dataset.data.x.shape[1]
         try:
             self.num_classes = self.data.y.unique().shape[0] if cfg.dataset.name != "Facebook" else 193
         except:
             self.num_classes = self.data.dataset.data.y.unique().shape[0] if cfg.dataset.name != "Facebook" else 193
+        if hasattr(self.data, "task_type"):
+            self.num_classes = 2
         self.discrete_mask = self.data.discrete_mask
         if hasattr(self.data, "discrete_edge_attr_mask"):
             self.discrete_edge_attr_mask = self.data.discrete_edge_attr_mask

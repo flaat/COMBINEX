@@ -1,18 +1,20 @@
 defaults:
   - _self_
-  - dataset: cuneiform  # Can be: aids actor planetoid karate attributed webkb enzymes protein 
-  - model: gine # Can be: gcn gat cheb
+  - dataset: cora # Can be: aids actor planetoid karate attributed webkb enzymes protein 
+  - model: gcn # Can be: gcn gat cheb
   - optimizer: adam
   - general: general_default
-  - task:  graph # Can be: node or graph
-  - explainer: combined # Can be: cf-gnnfeatures cf-gnn random-feat random cff unr combined
-  - trainer: naive_trainer
+  - task: link # Can be: node or graph
+  - explainer: combinex # Can be: gnnexplainer | cf-gnn | combinex | ego | random | random-feat
+  - trainer: trainer
   - logger: wandb
   - scheduler: scheduler
+
+
 verbose: False
 random_num_epochs: 500
 device: cuda
-workers: 4
+workers: 1
 path: ""
 seed: 1
 run_mode: run

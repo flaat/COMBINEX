@@ -1,5 +1,8 @@
 from torch import nn
-from src.oracles.models.models import GCN, ChebNet, GCN_G, ChebNet_G, GraphConvNet, GraphConvNet_G, GINENet_G, GAT_G
+from src.oracles.models.models import (
+    GCN, ChebNet, GCN_G, ChebNet_G, GraphConvNet, GraphConvNet_G, GINENet_G, GAT_G,
+    GCNLinkPredictor
+)
 from typing import Union
 
 
@@ -30,5 +33,7 @@ def get_model(name: str, task: str) -> Union[nn.Module, None]:
     elif name == "GAT" and task == "Graph":
         return GAT_G  
     
+    elif task == "Link" and name == "GCN":
+        return GCNLinkPredictor
     else:
         raise ValueError(f"Model not implemented {name}")

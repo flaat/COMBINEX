@@ -4,11 +4,11 @@ from omegaconf import DictConfig, OmegaConf
 import torch
 import wandb
 from src.datasets.datainfo import DataInfo
-from src.graph_level_explainer.explainer.wrappers.graph_explainer import GraphExplainerWrapper
+#from src.graph_level_explainer.explainer.wrappers.graph_explainer import GraphExplainerWrapper
 from src.utils.dataset import get_dataset
 import random
 from src.utils.models import get_model
-from src.utils.utils import flatten_dict, merge_hydra_wandb, read_yaml
+from src.utils.utils import flatten_dict, merge_hydra_wandb, read_yaml, get_trainer
 import os
 from datetime import datetime
 
@@ -38,14 +38,14 @@ def set_run_name(cfg, run):
 
 
 def run_sweep_agent(cfg: DictConfig, sweep_id: str):
-    wandb.agent(sweep_id=sweep_id, function=lambda: train(cfg))
+    wandb.agent(sweep_id=sweep_id, function=lambda: train(cfg))   
 
 
 def train(cfg):    
 
     with wandb.init(project=cfg.logger.project, group="experiment_1", mode=cfg.logger.mode) as run:
 
-        from src.node_level_explainer.explainer.wrappers.node_explainer import NodesExplainerWrapper
+        from src.explainer.wrapper import UnifiedExplainerWrapper
         from src.oracles.train.train import Trainer, GraphTrainer
         from torch.nn import functional as F
         random.seed(cfg.general.seed)        
@@ -56,9 +56,9 @@ def train(cfg):
 
         device = "cuda" if torch.cuda.is_available() and cfg.device == "cuda" else "cpu"
         
-        dataset = get_dataset(cfg.dataset.name, test_size=cfg.test_size)
+        dataset = get_dataset(cfg.dataset.name, test_size=cfg.test_size, task_type=cfg.task.name.lower())
         datainfo = DataInfo(cfg, dataset)
-        wrapper = NodesExplainerWrapper(cfg=cfg, wandb_run=run.name) if cfg.task.name == "Node" else GraphExplainerWrapper(cfg=cfg, wandb_run=run.name)
+        wrapper = UnifiedExplainerWrapper(cfg=cfg, wandb_run=run.name)
         oracle = get_model(name=cfg.model.name, task=cfg.task.name)
         oracle = oracle(
             datainfo=datainfo,
@@ -68,12 +68,13 @@ def train(cfg):
         dataset = dataset.to(device)
         oracle = oracle.to(device)
         datainfo.kfold = cfg.general.seed
-        trainer = Trainer if cfg.task.name == "Node" else GraphTrainer
-        trainer = trainer(cfg=cfg, dataset=dataset, model=oracle, loss=F.cross_entropy)
+        trainer = get_trainer(task=cfg.task.name)
+        trainer = trainer(cfg=cfg, dataset=dataset, model=oracle, loss_fn=F.cross_entropy)
         trainer.start_training()
         oracle = trainer.model
         oracle.eval()
         wrapper.explain(data=dataset, datainfo=datainfo, explainer=cfg.explainer.name, oracle=oracle)       
+
 
 @hydra.main(version_base="1.3", config_path="config", config_name="config")
 def main(cfg: DictConfig):
