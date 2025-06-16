@@ -98,6 +98,31 @@ class GraphPerturber(Perturber):
         if self.has_edge_attrs:
             self._setup_edge_attribute_perturbations(datainfo, graph)
             
+    def _get_node_to_block(self, nodes_list: list[int] | None = None) -> Tensor:
+        
+        if not nodes_list:
+            
+            return torch.ones_like(self.x).long()
+        
+        else:
+            
+            mask = torch.ones_like(self.x)
+            mask[nodes_list] = 0
+            return mask.long()
+        
+    def _get_edge_attr_to_block(self, graph, edges_list: list[int] | None = None) -> Tensor:
+        
+        if not edges_list:
+            
+            return torch.ones_like(graph.edge_attr).long()
+        
+        else:
+            
+            mask = torch.ones_like(graph.edge_attr)
+            mask[edges_list] = 0
+            return mask.long()
+            
+            
     def _setup_feature_perturbations(self, datainfo: DataInfo) -> None:
         """Setup node feature perturbation parameters."""
         self.discrete_features_addition = True
@@ -105,6 +130,7 @@ class GraphPerturber(Perturber):
         self.continuous_features_mask = 1 - datainfo.discrete_mask.to(self.device)
         self.min_range = datainfo.min_range.to(self.device)
         self.max_range = datainfo.max_range.to(self.device)
+        self.perturbation_mask = self._get_node_to_block()
         
         # Feature perturbation parameters
         self.P_x = Parameter(torch.zeros(
@@ -114,6 +140,7 @@ class GraphPerturber(Perturber):
     def _setup_edge_attribute_perturbations(self, datainfo: DataInfo, graph: Data) -> None:
         """Setup edge attribute perturbation parameters."""
         self.discrete_edge_attr_mask = datainfo.discrete_edge_attr_mask.to(self.device)
+        self.edge_perturbation_mask = self._get_edge_attr_to_block()
         self.continuous_edge_attr_mask = 1 - datainfo.discrete_edge_attr_mask.to(self.device)
         self.min_range_edges = datainfo.min_range_edges.to(self.device)
         self.max_range_edges = datainfo.max_range_edges.to(self.device)
@@ -148,15 +175,16 @@ class GraphPerturber(Perturber):
         Returns:
             Perturbed node features.
         """
+        
         tanh_P = torch.tanh(self.P_x)
         scaled_P = self.min_range + (self.max_range - self.min_range) * tanh_P
         
         # Apply masked perturbations
         raw_features = (
-            self.discrete_features_mask * (scaled_P + V_x) +
-            self.continuous_features_mask * (self.P_x + V_x)
+            self.discrete_features_mask * (scaled_P * self.perturbation_mask + V_x) +
+            self.continuous_features_mask * (self.P_x * self.perturbation_mask + V_x)
         )
-        
+
         return torch.clamp(raw_features, min=self.min_range, max=self.max_range)
     
     def _compute_perturbed_edge_attributes(self) -> Optional[Tensor]:
@@ -177,8 +205,8 @@ class GraphPerturber(Perturber):
         
         # Combine masked perturbations
         raw_edge_attr = (
-            self.discrete_edge_attr_mask * (scaled_discrete + self.graph_sample.edge_attr) +
-            self.continuous_edge_attr_mask * (self.E_attr + self.graph_sample.edge_attr)
+            self.discrete_edge_attr_mask * (scaled_discrete * self.edge_perturbation_mask + self.graph_sample.edge_attr) +
+            self.continuous_edge_attr_mask * (self.E_attr * self.edge_perturbation_mask + self.graph_sample.edge_attr)
         )
         
         return torch.clamp(raw_edge_attr, min=self.min_range_edges, max=self.max_range_edges)
@@ -250,19 +278,23 @@ class GraphPerturber(Perturber):
     
     def _compute_discrete_feature_perturbations(self, V_x: Tensor) -> Tensor:
         """Compute discrete feature perturbations for prediction."""
+        
         discrete_base = self.min_range + (self.max_range - self.min_range) * F.tanh(self.P_x)
         discrete_perturbation = self.discrete_features_mask * discretize_to_nearest_integer(
-            discrete_base + V_x
+            discrete_base * self.perturbation_mask + V_x
         )
         discrete_perturbation = torch.clamp(
             discrete_perturbation, min=self.min_range, max=self.max_range
         )
         
         continuous_perturbation = self.continuous_features_mask * torch.clamp(
-            self.P_x + V_x, min=self.min_range, max=self.max_range
+            self.P_x * self.perturbation_mask + V_x, min=self.min_range, max=self.max_range
         )
         
-        return discrete_perturbation + continuous_perturbation
+        features = discrete_perturbation + continuous_perturbation
+        
+        
+        return features
     
     def _compute_discrete_edge_attribute_perturbations(self) -> Optional[Tensor]:
         """Compute discrete edge attribute perturbations for prediction."""
@@ -275,7 +307,7 @@ class GraphPerturber(Perturber):
             (self.max_range_edges - self.min_range_edges) * torch.tanh(self.E_attr)
         )
         edge_discrete = self.discrete_edge_attr_mask * discretize_to_nearest_integer(
-            edge_base + self.graph_sample.edge_attr
+            edge_base * self.edge_perturbation_mask + self.graph_sample.edge_attr
         )
         edge_discrete = torch.clamp(
             edge_discrete, min=self.min_range_edges, max=self.max_range_edges
@@ -283,7 +315,7 @@ class GraphPerturber(Perturber):
         
         # Continuous edge perturbations
         edge_continuous = self.continuous_edge_attr_mask * torch.clamp(
-            self.E_attr + self.graph_sample.edge_attr,
+            self.E_attr * self.edge_perturbation_mask + self.graph_sample.edge_attr,
             min=self.min_range_edges, 
             max=self.max_range_edges
         )

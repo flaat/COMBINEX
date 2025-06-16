@@ -26,6 +26,16 @@ class DataInfo:
             self.max_range_edges = self.data.max_range_edges
         self.min_range = self.data.min_range
         self.max_range = self.data.max_range
+        # if hasattr(self.data, "perturbation_mask"):
+        #     self.perturbation_mask = self.data.perturbation_mask
+        # else:
+        #     self.perturbation_mask = torch.ones_like(self.data.x).long()
+        
+        if hasattr(self.data, "edge_perturbation_mask"):
+            self.edge_perturbation_mask = self.data.perturbation_mask
+        # elif hasattr(self.data, "discrete_edge_attr_mask"):
+        #     self.edge_perturbation_mask = torch.ones_like(self.data.discrete_edge_attr_mask).long()    
+        
         if hasattr(self.data, "discrete_edge_attr_mask"):
             self.edge_attr_dim = self.data.discrete_edge_attr_mask.shape[0] 
             

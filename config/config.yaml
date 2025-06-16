@@ -4,7 +4,7 @@ defaults:
   - model: gcn # Can be: gcn gat cheb
   - optimizer: adam
   - general: general_default
-  - task: link # Can be: node or graph
+  - task: node # Can be: node or graph
   - explainer: combinex # Can be: gnnexplainer | cf-gnn | combinex | ego | random | random-feat
   - trainer: trainer
   - logger: wandb
