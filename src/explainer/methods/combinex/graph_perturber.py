@@ -99,6 +99,26 @@ class GraphPerturber(Perturber):
             self._setup_edge_attribute_perturbations(datainfo, graph)
             
     def _get_node_to_block(self, nodes_list: list[int] | None = None) -> Tensor:
+        """
+        Generate a mask tensor indicating which nodes should be blocked. 
+        The tensor has the same shape as the nodes features tensor.
+        if a row i is set to all zeros it means that the nodes features of node i
+        cannot be perturbed.
+        
+        Args:
+            nodes_list (list[int] | None, optional): List of node indices to block.
+                If None or empty, all nodes will be marked as unblocked (value 1).
+                If provided, specified nodes will be marked as blocked (value 0 to all the nodes features of that particular node).
+                Defaults to None.
+        Returns:
+            Tensor: A long tensor mask with the same shape as self.x where:
+                - row of 1 indicates nodes that should be unblocked
+                - row of 0 indicates nodes that should remain blocked
+        Note:
+            When nodes_list is None or empty, returns a tensor of all ones.
+            When nodes_list is provided, returns a tensor of ones with zeros
+            at the specified node indices.
+        """
         
         if not nodes_list:
             
@@ -111,6 +131,27 @@ class GraphPerturber(Perturber):
             return mask.long()
         
     def _get_edge_attr_to_block(self, graph, edges_list: list[int] | None = None) -> Tensor:
+        """
+        Generate a mask tensor indicating which edge attributes should be blocked.
+        The tensor has the same shape as the edge attributes tensor.
+        If a row i is set to all zeros it means that the edge attributes of edge i
+        cannot be perturbed.
+        
+        Args:
+            graph: The input graph object containing edge attributes.
+            edges_list (list[int] | None, optional): List of edge indices to block.
+            If None or empty, all edges will be marked as unblocked (value 1).
+            If provided, specified edges will be marked as blocked (value 0 to all the edge attributes of that particular edge).
+            Defaults to None.
+        Returns:
+            Tensor: A long tensor mask with the same shape as graph.edge_attr where:
+            - row of 1 indicates edges that should be unblocked
+            - row of 0 indicates edges that should remain blocked
+        Note:
+            When edges_list is None or empty, returns a tensor of all ones.
+            When edges_list is provided, returns a tensor of ones with zeros
+            at the specified edge indices.
+        """
         
         if not edges_list:
             
