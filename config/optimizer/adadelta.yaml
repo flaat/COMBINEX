@@ -2,5 +2,5 @@ lr: 0.01
 n_momentum: 0.999
 beta: 1
 gamma: 1
-num_epochs: 10000
+num_epochs: 500
 name: adadelta

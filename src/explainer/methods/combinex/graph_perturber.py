@@ -120,6 +120,10 @@ class GraphPerturber(Perturber):
             at the specified node indices.
         """
         
+        if max(nodes_list) >= self.x.shape[0]:
+            
+            raise ValueError(f"The nodes {max(nodes_list)} cannot be turned off, it is not in the graph!")
+        
         if not nodes_list:
             
             return torch.ones_like(self.x).long()
@@ -153,6 +157,10 @@ class GraphPerturber(Perturber):
             at the specified edge indices.
         """
         
+        if max(edges_list) >= self.x.shape[0]:
+            
+            raise ValueError(f"The edge {max(edges_list)} cannot be turned off, it is not in the graph!")
+        
         if not edges_list:
             
             return torch.ones_like(graph.edge_attr).long()
@@ -171,7 +179,7 @@ class GraphPerturber(Perturber):
         self.continuous_features_mask = 1 - datainfo.discrete_mask.to(self.device)
         self.min_range = datainfo.min_range.to(self.device)
         self.max_range = datainfo.max_range.to(self.device)
-        self.perturbation_mask = self._get_node_to_block()
+        self.perturbation_mask = self._get_node_to_block([0, 1, 2, 3, 4])
         
         # Feature perturbation parameters
         self.P_x = Parameter(torch.zeros(
@@ -216,16 +224,17 @@ class GraphPerturber(Perturber):
         Returns:
             Perturbed node features.
         """
-        
-        tanh_P = torch.tanh(self.P_x)
-        scaled_P = self.min_range + (self.max_range - self.min_range) * tanh_P
-        
-        # Apply masked perturbations
-        raw_features = (
-            self.discrete_features_mask * (scaled_P * self.perturbation_mask + V_x) +
-            self.continuous_features_mask * (self.P_x * self.perturbation_mask + V_x)
-        )
-
+        try:
+            tanh_P = torch.tanh(self.P_x)
+            scaled_P = self.min_range + (self.max_range - self.min_range) * tanh_P
+            
+            # Apply masked perturbations
+            raw_features = (
+                self.discrete_features_mask * (scaled_P * self.perturbation_mask + V_x) +
+                self.continuous_features_mask * (self.P_x * self.perturbation_mask + V_x)
+            )
+        except Exception as e:
+            print(e)
         return torch.clamp(raw_features, min=self.min_range, max=self.max_range)
     
     def _compute_perturbed_edge_attributes(self) -> Optional[Tensor]:
