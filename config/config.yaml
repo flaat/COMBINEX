@@ -1,10 +1,10 @@
 defaults:
   - _self_
-  - dataset: cora # Can be: aids actor planetoid karate attributed webkb enzymes protein 
-  - model: gcn # Can be: gcn gat cheb
+  - dataset: cuneiform # Can be: aids actor planetoid karate attributed webkb enzymes protein 
+  - model: gine # Can be: gcn gat cheb
   - optimizer: adam
   - general: general_default
-  - task: node # Can be: node or graph
+  - task: graph # Can be: node or graph
   - explainer: combinex # Can be: gnnexplainer | cf-gnn | combinex | ego | random | random-feat
   - trainer: trainer
   - logger: wandb
@@ -18,9 +18,9 @@ workers: 1
 path: ""
 seed: 1
 run_mode: run
-figure: False
+figure: True
 # Project name on wandb
-project: COMBINEX
+project: COMBINEX-WITH-EDGE-ATTRS
 name: test
 
 # Eventual timeout in seconds to kill the process

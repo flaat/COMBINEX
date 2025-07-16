@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Example list of technique names
-technique_names=("cf-gnnfeatures" "cf-gnn"  "random-feat" "random" "ego"  "cff" "combined")  # Replace with your actual technique names "cf-gnnfeatures" "cf-gnn"  "random-feat" "random" "ego" "cff" "combined" "unr"  "cff" "combined"
-dataset=("aids_g" "enzymes_g" "protein_g" "coil") 
-policies=("constant" "linear" "exponential" "sinusoidal" "dynamic" )
-model="graph"
+technique_names=( "combinex")  # Replace with your actual technique names "cf-gnnfeatures" "cf-gnn"  "random-feat" "random" "ego" "cff" "combined" "unr"  "cff" "combined"
+dataset=("cuneiform") 
+policies=("constant")
+model="gcn"
 for data in "${dataset[@]}"; do
     echo "Running with technique: $data"
 

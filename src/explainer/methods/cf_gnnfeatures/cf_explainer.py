@@ -64,7 +64,7 @@ class CFExplainerFeatures(ExplainerABC):
         clip_grad_norm_(self.node_perturber.parameters(), self.cfg.explainer.clip_grad_norm)
         self.optimizer.step()
 
-        ExplanationContext(y_pred_new_actual=y_pred_new_actual,
+        context = ExplanationContext(y_pred_new_actual=y_pred_new_actual,
                            target=graph.targets,
                            loss=loss,
                            best_loss=self.best_loss,
@@ -77,7 +77,7 @@ class CFExplainerFeatures(ExplainerABC):
                            device=self.device)
         
         
-        return self.finalize_explanation(ExplanationContext)
+        return self.finalize_explanation(context)
 
     
     @property

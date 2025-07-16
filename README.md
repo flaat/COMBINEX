@@ -1,4 +1,4 @@
-# COMBINEX: A Unified Counterfactual ExplainerABC for Graph Neural Networks
+# Unified Counterfactual Explainer for Graph Neural Networks
 
 This repository provides a modular and configurable framework for generating counterfactual explanations in Graph Neural Networks (GNNs) using node feature and structural perturbations.
 
@@ -15,7 +15,7 @@ This repository provides a modular and configurable framework for generating cou
 
 ## Overview
 
-COMBINEX offers a flexible setup where all configurable options are defined within YAML files in the `config` folder. This design allows users to tailor every aspect of the software—ranging from datasets, logging, and model configurations to counterfactual explanation strategies.
+UCExplainer offers a flexible setup where all configurable options are defined within YAML files in the `config` folder. This design allows users to tailor every aspect of the software—ranging from datasets, logging, and model configurations to counterfactual explanation strategies.
 
 ![Python Version](https://img.shields.io/badge/python-3.11.10-brightgreen)
 ![PyTorch Version](https://img.shields.io/badge/pytorch-2.5.0-brightgreen)
@@ -26,8 +26,8 @@ COMBINEX offers a flexible setup where all configurable options are defined with
 ## Installation
 Create a Conda env and install **Python 3.11.10**
 ```setup
-conda create --name combinex
-conda activate combinex
+conda create --name ucexp
+conda activate ucexp
 conda install python=3.11.10
 pip install torch==2.50
 ```
@@ -117,6 +117,6 @@ wandb.sdk.lib.service_connection.WandbServiceNotOwnedError: Cannot tear down ser
 wandb: ERROR 
 ```
 
-Happy experimenting with COMBINEX!
+Happy experimenting with UCExplainer!
 - Sometimes AIDS and ENZYMES datasets for node classification have problems. To solve that we advice to remove the processed dataset from the processed folder. We will solve the issue asap.
 

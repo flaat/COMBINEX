@@ -347,14 +347,66 @@ class GraphConvNet_G(BaseGraphLevelGNN):
         
         return self._apply_global_pooling(x, batch)
 
+from torch_geometric.nn import MessagePassing
+
+# Assume BaseGraphLevelGNN, DataInfo, and GCNConv are defined/imported
+
+class CustomGINEConv(MessagePassing):
+    """
+    Corrected Custom GINE layer.
+    It projects the central node features and messages to the same
+    dimension before combining them, resolving the size mismatch.
+    """
+    def __init__(self, network: torch.nn.Module, in_channels: int, out_channels: int, 
+                 eps: float = 0., train_eps: bool = False, **kwargs):
+        super().__init__(aggr='add', **kwargs)
+        self.nn = network
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+    
+        # Linear layer to project the central node's features
+        self.lin = nn.Linear(in_channels, out_channels)
+        
+        self.initial_eps = eps
+        if train_eps:
+            self.eps = torch.nn.Parameter(torch.Tensor([eps]))
+        else:
+            self.register_buffer('eps', torch.Tensor([eps]))
+
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, 
+                edge_attr: Optional[torch.Tensor] = None, 
+                edge_weight: Optional[torch.Tensor] = None) -> torch.Tensor:
+        
+        # ✅ Project central node features to the output dimension
+        x_proj = self.lin(x)
+        
+        # Propagate and aggregate messages
+        aggr_out = self.propagate(edge_index, x=x, edge_attr=edge_attr, edge_weight=edge_weight)
+        
+        # Combine projected central node features with aggregated messages
+        return (1 + self.eps) * x_proj + aggr_out
+
+    def message(self, x_j: torch.Tensor, edge_attr: Optional[torch.Tensor], 
+                edge_weight: Optional[torch.Tensor]) -> torch.Tensor:
+        
+        msg_input = x_j
+        if edge_attr is not None:
+             msg_input = torch.cat([x_j, edge_attr], dim=1)
+        
+        # self.nn processes the concatenated features and outputs a message
+        # with the correct 'out_channels' dimension.
+        msg = self.nn(msg_input)
+        
+        if edge_weight is not None:
+            msg = msg * edge_weight.view(-1, 1)
+            
+        return msg
+
 
 class GINENet_G(BaseGraphLevelGNN):
     """
-    Graph Isomorphism Network with Edge features (GINE) for graph classification.
-    
-    Uses sum pooling which is typically preferred for GIN-based architectures.
+    GINENet_G updated to correctly initialize and use the new CustomGINEConv.
     """
-    
     def __init__(self, datainfo: DataInfo, cfg):
         super().__init__(datainfo, cfg)
         self.edge_attr_dim = getattr(datainfo, 'edge_attr_dim', 0)
@@ -363,49 +415,64 @@ class GINENet_G(BaseGraphLevelGNN):
 
     def _build_layers(self) -> None:
         """Build GINE layers with MLPs."""
-        # Input layer with MLP
-        input_mlp = nn.Sequential(
-            nn.Linear(self.num_features, self.hidden_layers[0]),
+        
+        # Define the input and output dimensions for the first layer
+        in_channels = self.num_features
+        out_channels = self.hidden_layers[0]
+        
+        # The MLP for messages must handle concatenated node+edge features
+        mlp_input_dim = in_channels
+        if self.edge_attr_dim > 0:
+            mlp_input_dim += self.edge_attr_dim
+            
+        message_mlp = nn.Sequential(
+            nn.Linear(mlp_input_dim, out_channels),
             nn.ReLU(),
-            nn.Linear(self.hidden_layers[0], self.hidden_layers[0])
+            nn.Linear(out_channels, out_channels)
         )
-        self.layers.append(GINEConv(input_mlp, edge_dim=self.edge_attr_dim))
+        
+        # ✅ Correctly initialize the custom layer
+        self.layers.append(CustomGINEConv(
+            network=message_mlp, 
+            in_channels=in_channels, 
+            out_channels=out_channels
+        ))
 
-        # Hidden layers (using GCN for simplicity, but could be more GINE layers)
+        # Hidden layers
         for i in range(1, len(self.hidden_layers)):
             self.layers.append(GCNConv(self.hidden_layers[i-1], self.hidden_layers[i]))
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor, 
-                batch: torch.Tensor, edge_attr: Optional[torch.Tensor] = None) -> torch.Tensor:
-        """Forward pass using sum pooling for GINE."""
+                batch: torch.Tensor, edge_attr: Optional[torch.Tensor] = None,
+                edge_weights: Optional[torch.Tensor] = None) -> torch.Tensor:
         for i, layer in enumerate(self.layers):
-            if isinstance(layer, GINEConv) and i == 0:
-                x = layer(x, edge_index, edge_attr)
+            if isinstance(layer, CustomGINEConv) and i == 0:
+                x = layer(x, edge_index, edge_attr=edge_attr, edge_weight=edge_weights)
             else:
-                x = layer(x, edge_index)
+                x = layer(x, edge_index, edge_weight=edge_weights)
             
             x = F.relu(x)
             x = F.dropout(x, self.dropout, training=self.training)
         
-        # Use sum pooling for GIN-based architectures
         x = self._apply_global_pooling(x, batch, pooling_type='add')
         x = self.output_layer(x)
         return F.log_softmax(x, dim=1)
 
+    # (get_embedding_repr method would have the same loop as forward)
     def get_embedding_repr(self, x: torch.Tensor, edge_index: torch.Tensor, 
-                          batch: torch.Tensor, edge_attr: Optional[torch.Tensor] = None) -> torch.Tensor:
+                          batch: torch.Tensor, edge_attr: Optional[torch.Tensor] = None,
+                          edge_weights: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Get graph-level embedding representation."""
         for i, layer in enumerate(self.layers):
-            if isinstance(layer, GINEConv) and i == 0:
-                x = layer(x, edge_index, edge_attr)
+            if isinstance(layer, CustomGINEConv) and i == 0:
+                x = layer(x, edge_index, edge_attr=edge_attr, edge_weight=edge_weights)
             else:
-                x = layer(x, edge_index)
+                x = layer(x, edge_index, edge_weight=edge_weights)
             
             x = F.relu(x)
             x = F.dropout(x, self.dropout, training=self.training)
         
         return self._apply_global_pooling(x, batch, pooling_type='add')
-
 
 class GAT_G(BaseGraphLevelGNN):
     """

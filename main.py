@@ -73,7 +73,7 @@ def train(cfg):
         trainer.start_training()
         oracle = trainer.model
         oracle.eval()
-        wrapper.explain(data=dataset, datainfo=datainfo, explainer=cfg.explainer.name, oracle=oracle)       
+        return wrapper.explain(data=dataset, datainfo=datainfo, explainer=cfg.explainer.name, oracle=oracle)       
 
 
 @hydra.main(version_base="1.3", config_path="config", config_name="config")

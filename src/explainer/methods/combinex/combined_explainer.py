@@ -115,14 +115,18 @@ class Combinex(ExplainerABC):
         loss_pred = torch.nn.functional.cross_entropy(differentiable_output, target)            
         if self.graph_perturber.has_edge_attrs:
             edge_attr_loss,_ = self.graph_perturber.edge_attr_loss(graph)
-            loss = eta * loss_pred + (1 - alpha) * edge_loss + alpha * (node_loss + edge_attr_loss)
-        else:
-            loss = eta * loss_pred + (1 - alpha) * edge_loss + alpha * node_loss
-        
-        
-        if epoch % 100 == 0:
-            print(f"Epoch: {epoch}, Loss: {loss.item():.8f}, Pred Loss: {loss_pred} Edge Loss: {edge_loss.item():.4f}, Node Loss: {node_loss.item():.4f}")
+            
+            beta = self.cfg.explainer.beta if self.cfg.explainer.beta != "None" else ((1-alpha)/2)
+            p_lambda = self.cfg.explainer.p_lambda if self.cfg.explainer.p_lambda != "None" else ((1-alpha)/2)
+            loss = eta * loss_pred + alpha * edge_loss + beta * node_loss + p_lambda * edge_attr_loss
+            if epoch % 100 == 0:
+                print(f"Epoch: {epoch}, Loss: {loss.item():.8f}, Pred Loss: {loss_pred} Edge Loss: {edge_loss.item():.4f}, Node Loss: {node_loss.item():.4f} Edge Attr. Loss:{edge_attr_loss.item():.8f}")
     
+        else:
+            loss = eta * loss_pred + alpha * edge_loss + (1-alpha) * node_loss
+        
+        
+
         loss.backward()        
         self.optimizer.step()
         
@@ -164,7 +168,7 @@ class Combinex(ExplainerABC):
             # Linear decay
             alpha = max(0.0, 1.0 - epoch / self.cfg.optimizer.num_epochs)
         elif self.cfg.scheduler.policy == "exponential":
-            # Exponential decay
+            # Exponential decaygraph
             alpha = max(0.0, np.exp(-epoch / self.cfg.scheduler.decay_rate))
         elif self.cfg.scheduler.policy == "sinusoidal":
             # Sinusoidal decay

@@ -6,5 +6,4 @@ metric:
   name: fidelity
 parameters:
   seed:
-    min: 0
-    max: 3
+    values: [42, 43, 44, 100, 101, 102]

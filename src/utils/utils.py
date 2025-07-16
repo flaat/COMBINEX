@@ -8,6 +8,7 @@ from functools import wraps
 from pathlib import Path
 from typing import Dict, Optional, Tuple, Union, Any
 from dataclasses import dataclass
+from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -16,6 +17,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import wandb
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+from torch_geometric.datasets import TUDataset
+from torch_geometric.data import DataLoader
+import networkx as nx
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
+
 from texttable import Texttable
 from torch import Tensor
 from torch_geometric.data import Data
@@ -23,6 +33,117 @@ from torch_geometric.utils import k_hop_subgraph, subgraph, to_dense_adj
 from typing import Any, Dict
 from omegaconf import DictConfig, DictKeyType
 import yaml
+
+def visualize_graph(data, ax, title):
+    """Visualize a single graph from the dataset using node features and edge attributes"""
+    # Convert to NetworkX graph
+    edge_index = data.edge_index.numpy()
+    G = nx.Graph()
+    
+    # Add nodes with features
+    for i in range(data.num_nodes):
+        G.add_node(i)
+    
+    # Add edges with attributes if available
+    edges = [(edge_index[0][i], edge_index[1][i]) for i in range(edge_index.shape[1])]
+    G.add_edges_from(edges)
+    
+    # Create layout
+    pos = nx.spring_layout(G, seed=42)
+    
+    # Handle node features for coloring
+    if data.x is not None and data.x.size(1) > 0:
+        # Use first feature dimension for node coloring
+        node_features = data.x[:, 0].numpy()
+        node_colors = node_features
+        cmap = cm.viridis
+        norm = Normalize(vmin=node_features.min(), vmax=node_features.max())
+        
+        # Calculate node sizes based on feature magnitude if multiple features
+        if data.x.size(1) > 1:
+            node_sizes = np.abs(data.x.sum(dim=1).numpy()) * 20 + 30
+        else:
+            node_sizes = 50
+    else:
+        node_colors = 'lightblue'
+        node_sizes = 50
+        cmap = None
+        norm = None
+    
+    # Handle edge attributes for edge widths/colors
+    edge_widths = 1.5
+    edge_colors = 'black'
+    edge_collection = None
+    
+    if hasattr(data, 'edge_attr') and data.edge_attr is not None:
+        if data.edge_attr.size(1) > 0:
+            # Use first edge attribute for edge width
+            edge_attrs = data.edge_attr[:, 0].numpy()
+            edge_widths = np.abs(edge_attrs) * 2 + 0.5
+            
+            # Use edge attributes for coloring if more than one dimension
+            if data.edge_attr.size(1) > 1:
+                edge_colors = data.edge_attr[:, 1].numpy()
+                # Normalize edge colors to [0, 1] range for proper color mapping
+                if edge_colors.max() != edge_colors.min():
+                    edge_colors = (edge_colors - edge_colors.min()) / (edge_colors.max() - edge_colors.min())
+                else:
+                    edge_colors = np.ones_like(edge_colors) * 0.5
+    
+    # Draw the graph
+    if isinstance(edge_colors, np.ndarray):
+        # Use matplotlib's LineCollection for proper color mapping with edge attributes
+        from matplotlib.collections import LineCollection
+        
+        # Create edge segments for LineCollection
+        edge_segments = []
+        for edge in G.edges():
+            edge_segments.append([pos[edge[0]], pos[edge[1]]])
+        
+        # Create LineCollection with proper color mapping
+        line_collection = LineCollection(edge_segments, 
+                                       linewidths=edge_widths,
+                                       colors=cm.plasma(edge_colors),
+                                       alpha=0.7)
+        ax.add_collection(line_collection)
+        edge_collection = line_collection
+    else:
+        nx.draw_networkx_edges(G, pos, ax=ax, width=edge_widths, 
+                             edge_color=edge_colors, alpha=0.7)
+    
+    # Draw nodes
+    nodes = nx.draw_networkx_nodes(G, pos, ax=ax, node_color=node_colors, 
+                                  node_size=node_sizes, cmap=cmap, alpha=0.8)
+    
+    # Add colorbar for node features if applicable
+    if cmap is not None and norm is not None:
+        plt.colorbar(nodes, ax=ax, shrink=0.8, label='Node Feature Value')
+    
+    # Add colorbar for edge features if applicable
+    if isinstance(edge_colors, np.ndarray) and edge_collection is not None:
+        # Create a ScalarMappable for the edge colorbar
+        from matplotlib.cm import ScalarMappable
+        # Don't import Normalize here since it's already imported at the top
+        
+        edge_norm = Normalize(vmin=edge_colors.min(), vmax=edge_colors.max())
+        edge_sm = ScalarMappable(norm=edge_norm, cmap=cm.plasma)
+        plt.colorbar(edge_sm, ax=ax, shrink=0.6, label='Edge Feature Value', 
+                    orientation='horizontal', pad=0.1)
+    
+    # Create title with feature information
+    feature_info = ""
+    if data.x is not None:
+        feature_info += f"Node features: {data.x.size(1)}"
+    if hasattr(data, 'edge_attr') and data.edge_attr is not None:
+        feature_info += f", Edge features: {data.edge_attr.size(1)}"
+    
+    ax.set_title(f'{title}\nNodes: {data.num_nodes}, Edges: {data.num_edges}\n{feature_info}', 
+                fontsize=9)
+    ax.set_aspect('equal')
+    
+    plt.tight_layout()
+    plt.savefig("Prova.jpeg")
+
 
 def print_info(string: str) -> None:
     from datetime import datetime
@@ -171,7 +292,7 @@ class OptimizerFactory:
         optimizer_map = {
             "sgd": lambda: OptimizerFactory._create_sgd(cfg, model),
             "adadelta": lambda: optim.Adadelta(model.parameters(), lr=lr),
-            "adam": lambda: optim.Adam(model.parameters(), lr=lr),
+            "adam": lambda: optim.Adam(model.parameters(), lr=lr, betas=(0.0, 0.0)),
             "adamw": lambda: optim.AdamW(model.parameters(), lr=lr),
             "rmsprop": lambda: optim.RMSprop(model.parameters(), lr=lr),
         }

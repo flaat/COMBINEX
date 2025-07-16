@@ -14,6 +14,7 @@ import traceback
 from functools import partial
 from typing import Dict, List, Optional, Tuple, Union
 
+from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -33,7 +34,8 @@ from ..evaluation.metrics import MetricCalculator
 from ..utils.utils import (
     build_factual_graph, 
     check_graphs, 
-    plot_factual_and_counterfactual_graphs
+    plot_factual_and_counterfactual_graphs,
+    visualize_graph
 )
 
 
@@ -356,14 +358,14 @@ class UnifiedExplainerWrapper(Wrapper):
                     if result is not None:
                         metric_list.append(result)
                 
-                
                 # Log results
                 if metric_list:
+
                     dataframe = pd.DataFrame.from_dict(metric_list)
                     dataframe = dataframe.fillna(0)  # Fill NaN values with 0
                     wandb.log({f"{k}_std": v for k, v in dataframe.std().to_dict().items()})
-                    wandb.log({f"{k}_mean": v for k, v in dataframe.mean().to_dict().items()})
-                    
+                    means = {f"{k}".title().replace("_", " "): v for k, v in dataframe.mean().to_dict().items()}
+                    wandb.log(means)
                     return {
                         'task_type': 'graph',
                         'metrics': dataframe.to_dict('records'),
@@ -728,11 +730,10 @@ class UnifiedExplainerWrapper(Wrapper):
             time_elapsed = end_time - start_time
             
             # Generate plots if requested
-            if explanation is not None and getattr(cfg, 'figure', False):
-                plot_factual_and_counterfactual_graphs(
-                    graph, explanation, 
-                    folder=str(wandb_run), pid=pid
-                )
+            if explanation is not None and cfg.figure:
+                fig, axes = plt.subplots(1,1, figsize=(15, 15))
+                fig.suptitle(f'Cuneiform Dataset Visualization with Features', fontsize=16, fontweight='bold')
+                visualize_graph(explanation, axes, title=f"{pid}")
             
             # Compute metrics
             calculator = MetricCalculator(task_type='graph')
@@ -741,6 +742,8 @@ class UnifiedExplainerWrapper(Wrapper):
                 counterfactual=explanation, 
                 mean_projection=getattr(datainfo, 'distribution_mean_projection', None)
             )
+            
+            
             
             # Add time to metrics
             metrics['time_elapsed'] = time_elapsed

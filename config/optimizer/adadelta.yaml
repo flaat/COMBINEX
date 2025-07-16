@@ -1,5 +1,5 @@
 lr: 0.01
-n_momentum: 0.999
+n_momentum: 0.0
 beta: 1
 gamma: 1
 num_epochs: 500
